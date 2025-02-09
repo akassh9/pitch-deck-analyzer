@@ -12,3 +12,15 @@ __pycache__/
 .vscode/
 
 node_modules/
+
+# Ignore Next.js build files
+.next/
+
+# Ignore cache files
+cache/
+
+# Ignore static build outputs
+static/
+
+# Ignore temporary build artifacts (if applicable)
+dist/

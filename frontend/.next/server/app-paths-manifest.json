@@ -1,7 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/api/upload/route": "app/api/upload/route.js",
-  "/edit/page": "app/edit/page.js",
-  "/api/generate-memo/route": "app/api/generate-memo/route.js",
-  "/result/page": "app/result/page.js"
-}
