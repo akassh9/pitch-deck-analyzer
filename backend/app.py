@@ -176,7 +176,7 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
 
 def refine_text(text):
     """
@@ -204,14 +204,14 @@ def refine_text(text):
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a text refinement assistant. Clean and improve the readability of the given text while preserving its meaning."
+                    "content": "Clean and improve this text for readability while strictly preserving all original factual information. Do not add, remove, or summarize any information. Only improve clarity and structure."
                 },
                 {
                     "role": "user",
                     "content": f"Clean and improve this text while maintaining all factual information:\n\n{chunk}"
                 }
             ],
-            "temperature": 0.7,
+            "temperature": 0.5,
             "max_tokens": 4096
         }
         

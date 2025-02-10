@@ -24,3 +24,6 @@ static/
 
 # Ignore temporary build artifacts (if applicable)
 dist/
+
+#ignore uploads
+.pdf
