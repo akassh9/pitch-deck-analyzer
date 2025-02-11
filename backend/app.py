@@ -194,27 +194,32 @@ def refine_text(text):
     }
     
     # Split text into chunks if it's too long
-    max_chunk_size = 4000
+    max_chunk_size = 100000
     chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
     refined_chunks = []
     
     for chunk in chunks:
         data = {
-            "model": "llama-3.2-1b-preview",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Clean and improve this text for readability while strictly preserving all original factual information. Do not add, remove, or summarize any information. Only improve clarity and structure."
-                },
-                {
-                    "role": "user",
-                    "content": f"Clean and improve this text while maintaining all factual information:\n\n{chunk}"
+                    "model": "llama-3.2-1b-preview",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                "Your task is to improve the clarity and structure of the following text while "
+                                "preserving every piece of factual information exactly as it appears. Do not add, "
+                                "remove, or modify any information, and do not include any commentary or extra content. "
+                                "Return only the cleaned text."
+                            )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Please improve the following text for readability, keeping all factual details intact:\n\n{chunk}"
+                        }
+                    ],
+                    "temperature": 0.1,  # or a low value like 0.1
+                    "max_tokens": 8192
                 }
-            ],
-            "temperature": 0.5,
-            "max_tokens": 4096
-        }
-        
+
         try:
             print(f"Calling Groq API for chunk of length {len(chunk)}...")
             response = requests.post(url, headers=headers, json=data)
