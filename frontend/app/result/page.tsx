@@ -2,6 +2,37 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// Add a helper function to extract and split content
+function extractThinkContent(text: string): { mainContent: string; thinkContent: string | null } {
+    if (!text) {
+        console.log('Received empty text in extractThinkContent');
+        return { mainContent: '', thinkContent: null };
+    }
+    
+    // Log whether the text includes think tags
+    console.log('Text includes <think>?', text.includes('<think>'));
+    console.log('Text includes </think>?', text.includes('</think>'));
+
+    // Match exactly <think>...</think>
+    const pattern = /<think>([\s\S]+?)<\/think>/i;
+    const match = text.match(pattern);
+
+    if (match) {
+        const thinkContent = match[1].trim();
+        const mainContent = text.replace(pattern, '').trim();
+        console.log('Think content found:', {
+            thinkContentPreview: thinkContent.substring(0, 100),
+            mainContentPreview: mainContent.substring(0, 100)
+        });
+        return { mainContent, thinkContent };
+    }
+
+    console.log('No think tags found. Content preview:', text.substring(0, 100));
+    return { mainContent: text, thinkContent: null };
+}
 
 async function validateText(text: string): Promise<string> {
     const response = await fetch('/api/validate-selection', {
@@ -25,6 +56,7 @@ export default function Result() {
     const memo = searchParams.get('memo') || '';
     const [validationHtml, setValidationHtml] = useState<string>('');
     const [selectedText, setSelectedText] = useState<string>('');
+    const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
 
     const handleTextSelection = () => {
         const selection = window.getSelection();
@@ -36,12 +68,31 @@ export default function Result() {
     const handleValidateClick = async () => {
         try {
             const html = await validateText(selectedText);
-            setValidationHtml(html);
+            console.log('Raw API response:', html);
+            
+            // Ensure we're working with decoded HTML before processing
+            const decodedHtml = html
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&#x3C;/g, '<')
+                .replace(/&#x3E;/g, '>');
+                
+            setValidationHtml(decodedHtml);
         } catch (error) {
             console.error('Validation error:', error);
             setValidationHtml('<p>Failed to load validation results.</p>');
         }
     };
+
+    // Use memo as a fallback if validationHtml is empty
+    const contentToExtract = validationHtml.trim() ? validationHtml : memo;
+    const { mainContent, thinkContent } = extractThinkContent(contentToExtract);
+    
+    console.log('Extracted content:', {
+        hasThinkContent: !!thinkContent,
+        mainContentLength: mainContent?.length,
+        thinkContentLength: thinkContent?.length
+    });
 
     return (
         <div className="min-h-screen bg-background text-foreground p-8">
@@ -55,16 +106,61 @@ export default function Result() {
                         Analyze Another Deck
                     </Link>
                 </div>
-                <div className="bg-secondary p-6 rounded-lg">
-                    <pre className="whitespace-pre-wrap" onMouseUp={handleTextSelection}>{memo}</pre>
+                <div 
+                    className="bg-secondary p-6 rounded-lg"
+                    onMouseUp={handleTextSelection}
+                >
+                    <div className="prose prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {memo}
+                        </ReactMarkdown>
+                    </div>
                 </div>
                 <button
                     onClick={handleValidateClick}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg mt-4"
+                    disabled={!selectedText}
                 >
                     Validate Selection
                 </button>
-                <div dangerouslySetInnerHTML={{ __html: validationHtml }} />
+                <div className="mt-6 prose prose-invert max-w-none">
+                    {/* Main content */}
+                    <div className="mb-4">
+                        <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>
+                            }}
+                        >
+                            {mainContent}
+                        </ReactMarkdown>
+                    </div>
+                    
+                    {/* Think content (Model Reasoning) */}
+                    {thinkContent && (
+                        <div className="mt-4 border border-gray-700 rounded-lg">
+                            <button
+                                onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+                                className="w-full p-4 text-left bg-gray-800 hover:bg-gray-700 rounded-t-lg flex justify-between items-center"
+                            >
+                                <span className="font-semibold">Model Reasoning</span>
+                                <span>{isThinkingExpanded ? '▼' : '▶'}</span>
+                            </button>
+                            {isThinkingExpanded && (
+                                <div className="p-4 bg-gray-900 rounded-b-lg">
+                                    <ReactMarkdown 
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>
+                                        }}
+                                    >
+                                        {thinkContent}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

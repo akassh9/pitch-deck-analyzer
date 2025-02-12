@@ -27,3 +27,7 @@ dist/
 
 #ignore uploads
 .pdf
+
+# Logs directory
+logs/
+*.txt

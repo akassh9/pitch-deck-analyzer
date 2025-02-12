@@ -10,6 +10,7 @@ import pdfplumber
 import google.generativeai as genai
 import json
 from flask_cors import CORS  # Add this import
+import datetime
 
 # --- Helper Functions (existing ones) ---
 def is_noise_page(text):
@@ -180,54 +181,79 @@ app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
 
 def refine_text(text):
     """
-    Uses Groq Cloud's llama2-70b-4096 model to improve text readability
+    Uses OpenRouter's nvidia/llama-3.1-nemotron-70b-instruct model to improve text readability
     """
-    if not GROQ_API_KEY:
-        print("Warning: GROQ_API_KEY is not set")
+    # Add logging functionality at the start
+    log_dir = os.path.join(os.getcwd(), 'logs')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_file = os.path.join(log_dir, f'raw_text_{timestamp}.txt')
+    
+    # Log the original text
+    with open(log_file, 'w', encoding='utf-8') as f:
+        f.write("=== Original Text ===\n\n")
+        f.write(text)
+        f.write("\n\n=== End Original Text ===")
+    
+    print(f"Raw text logged to: {log_file}")
+
+    if not HF_API_KEY:  # Using HF_API_KEY for OpenRouter
+        print("Warning: HF_API_KEY is not set")
         return text
         
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    url = "https://openrouter.ai/api/v1/chat/completions"
     
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {HF_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://your-site-url.com",
+        "X-Title": "Your Site Name"
     }
     
-    # Split text into chunks if it's too long
-    max_chunk_size = 100000
+    # Increase chunk size to better utilize the 131K context window
+    max_chunk_size = 130000  # Changed from 100000
     chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
     refined_chunks = []
     
     for chunk in chunks:
         data = {
-                    "model": "llama-3.2-1b-preview",
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": (
-                                "Your task is to improve the clarity and structure of the following text while "
-                                "preserving every piece of factual information exactly as it appears. Do not add, "
-                                "remove, or modify any information, and do not include any commentary or extra content. "
-                                "Return only the cleaned text."
-                            )
-                        },
-                        {
-                            "role": "user",
-                            "content": f"Please improve the following text for readability, keeping all factual details intact:\n\n{chunk}"
-                        }
-                    ],
-                    "temperature": 0.1,  # or a low value like 0.1
-                    "max_tokens": 8192
+            "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Your task is to improve the clarity and structure of the following text while "
+                        "preserving every piece of factual information exactly as it appears. Do not add, "
+                        "remove, or modify any information, and do not include any commentary or extra content. "
+                        "Return only the cleaned text."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Please improve the following text for readability, keeping all factual details intact:\n\n{chunk}"
                 }
+            ],
+            "temperature": 0.5,
+            "max_tokens": 130000,
+            "top_p": 1.0,
+            "top_k": 0,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            "repetition_penalty": 1.0,
+            "min_p": 0.0,
+            "top_a": 0.0
+        }
 
         try:
-            print(f"Calling Groq API for chunk of length {len(chunk)}...")
+            print(f"Calling OpenRouter API for chunk of length {len(chunk)}...")
             response = requests.post(url, headers=headers, json=data)
-            print(f"Groq API Response Status: {response.status_code}")
+            print(f"OpenRouter API Response Status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                print("Response received from Groq")
+                print("Response received from OpenRouter")
                 print(f"Response structure: {list(result.keys())}")
                 
                 if "choices" in result and len(result["choices"]) > 0:
@@ -241,7 +267,7 @@ def refine_text(text):
                 print(f"Error {response.status_code}: {response.text}")
                 refined_chunks.append(chunk)
         except Exception as e:
-            print(f"Exception in Groq API call: {str(e)}")
+            print(f"Exception in OpenRouter API call: {str(e)}")
             refined_chunks.append(chunk)
     
     # Combine refined chunks

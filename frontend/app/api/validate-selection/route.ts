@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        const data = await request.json();
-        const selected_text = data.selected_text;
+        const { selected_text } = await request.json();
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
         const backendResponse = await fetch(`${apiUrl}/validate_selection`, {
@@ -20,7 +19,16 @@ export async function POST(request: Request) {
         }
 
         const backendData = await backendResponse.json();
-        return NextResponse.json(backendData);
+        
+        // Ensure HTML tags are preserved
+        return new Response(JSON.stringify({
+            validation_html: backendData.response_text,
+            status: 'success'
+        }), {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
     } catch (error) {
         console.error('Error:', error);
         return NextResponse.json(
