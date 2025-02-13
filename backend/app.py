@@ -161,7 +161,7 @@ print("Loaded API Key:", HF_API_KEY)
 print(f"Loaded Groq API Key: {GROQ_API_KEY[:5]}...")  # Print first 5 chars for security
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # Add headers manually after each response.
 @app.after_request
@@ -213,7 +213,7 @@ def refine_text(text):
     }
     
     # Increase chunk size to better utilize the 131K context window
-    max_chunk_size = 130000  # Changed from 100000
+    max_chunk_size = 2000
     chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
     refined_chunks = []
     
@@ -224,15 +224,13 @@ def refine_text(text):
                 {
                     "role": "system",
                     "content": (
-                        "Your task is to improve the clarity and structure of the following text while "
-                        "preserving every piece of factual information exactly as it appears. Do not add, "
-                        "remove, or modify any information, and do not include any commentary or extra content. "
-                        "Return only the cleaned text."
+                        "Your task is to remove only unnecessary whitespace, extra newlines, and redundant paragraph breaks from the text. "
+                        "Do not change, add, or remove any words or information. Simply return the text with improved formatting."
                     )
                 },
                 {
-                    "role": "user",
-                    "content": f"Please improve the following text for readability, keeping all factual details intact:\n\n{chunk}"
+                     "role": "user",
+                     "content": f"Please return only the cleaned text, with all unnecessary whitespace removed, and no additional headers or explanations. Text:\n\n{chunk}"
                 }
             ],
             "temperature": 0.5,
@@ -310,7 +308,7 @@ def generate_investment_memo(text, is_refined=False):
                             "2. Market Opportunity – Analyze the market size, growth potential, and key trends.\n"
                             "3. Competitive Landscape – Evaluate the competitive environment and the startup's competitive edge.\n"
                             "4. Financial Highlights – Highlight key financial metrics and growth projections.\n\n"
-                            "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. "
+                            "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. Give it a score out of 5 "
                             f"Pitch Deck Content: {truncated_text}"
                         )
                     }
