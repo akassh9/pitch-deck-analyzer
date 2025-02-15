@@ -7,6 +7,8 @@
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-markdown": "^9.0.3",
+    "remark-gfm": "^4.0.1",
     "typescript": "^5.0.0"
   },
   "devDependencies": {
