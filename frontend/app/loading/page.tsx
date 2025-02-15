@@ -19,7 +19,7 @@ export default function LoadingPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const stepDuration = 1500 // 1.5 seconds per step
+    const stepDuration = 2500 // 1.5 seconds per step
     const progressIncrement = 100 / steps.length
 
     // Check for extracted text periodically
