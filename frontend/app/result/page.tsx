@@ -1,7 +1,6 @@
 'use client';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -35,9 +34,18 @@ async function validateText(text: string): Promise<string> {
 }
 
 export default function Result() {
-  const searchParams = useSearchParams();
-  const memoParam = searchParams.get('memo') || '';
-  
+  const [memoParam, setMemoParam] = useState('');
+
+  useEffect(() => {
+    // Get memo from localStorage
+    const memo = localStorage.getItem('memo');
+    if (memo) {
+      setMemoParam(memo);
+      // Clean up localStorage after reading
+      localStorage.removeItem('memo');
+    }
+  }, []);
+
   // Separate <think> content from the memo
   const { mainContent: memoMain, thinkContent: memoThink } = extractThinkContent(memoParam);
 

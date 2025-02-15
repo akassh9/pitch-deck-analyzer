@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // Changed from 'next/router'
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const router = useRouter();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -20,6 +22,12 @@ export default function Page() {
     if (!file) return;
 
     setIsLoading(true);
+    // Clear old extracted text from localStorage
+    localStorage.removeItem('extractedText');
+    
+    // Navigate to loading page immediately
+    router.push('/loading');
+    
     const formData = new FormData();
     formData.append('pdf_file', file);
 
@@ -36,13 +44,16 @@ export default function Page() {
 
       const data = await response.json();
       if (data.success) {
-        window.location.href = `/edit?text=${encodeURIComponent(data.text)}`;
+        // Store the new extracted text so loading page can redirect
+        localStorage.setItem('extractedText', data.text);
       } else {
         throw new Error(data.error || 'Upload failed');
       }
     } catch (error) {
       console.error('Upload error:', error);
       alert(error instanceof Error ? error.message : 'Upload failed');
+      // Return to home page on error
+      router.push('/');
     } finally {
       setIsLoading(false);
     }
