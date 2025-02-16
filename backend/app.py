@@ -161,7 +161,16 @@ print("Loaded API Key:", HF_API_KEY)
 print(f"Loaded Groq API Key: {GROQ_API_KEY[:5]}...")  # Print first 5 chars for security
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",  # Development
+            "https://pitch-deck-analyzer-frontend.vercel.app/",  # Production
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Add headers manually after each response.
 @app.after_request

@@ -19,7 +19,8 @@ function extractThinkContent(text: string): { mainContent: string; thinkContent:
 }
 
 async function validateText(text: string): Promise<string> {
-  const response = await fetch('http://localhost:5000/validate_selection', {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const response = await fetch(`${apiUrl}/validate_selection`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ selected_text: text }),

@@ -22,17 +22,16 @@ export default function Page() {
     if (!file) return;
 
     setIsLoading(true);
-    // Clear old extracted text from localStorage
     localStorage.removeItem('extractedText');
     
-    // Navigate to loading page immediately
     router.push('/loading');
     
     const formData = new FormData();
     formData.append('pdf_file', file);
 
     try {
-      const response = await fetch('/api/upload', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -44,7 +43,6 @@ export default function Page() {
 
       const data = await response.json();
       if (data.success) {
-        // Store the new extracted text so loading page can redirect
         localStorage.setItem('extractedText', data.text);
       } else {
         throw new Error(data.error || 'Upload failed');
@@ -52,7 +50,6 @@ export default function Page() {
     } catch (error) {
       console.error('Upload error:', error);
       alert(error instanceof Error ? error.message : 'Upload failed');
-      // Return to home page on error
       router.push('/');
     } finally {
       setIsLoading(false);
