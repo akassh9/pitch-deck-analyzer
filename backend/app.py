@@ -165,20 +165,31 @@ CORS(app, resources={
     r"/*": {
         "origins": [
             "http://localhost:3000",  # Development
-            "https://pitch-deck-analyzer-frontend.vercel.app/",  # Production
+            "https://pitch-deck-analyzer-frontend.vercel.app",  # Production - Remove trailing slash
+            "https://pitch-deck-analyzer.vercel.app"  # Alternative production URL
         ],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type"],
+        "supports_credentials": True
     }
 })
 
-# Add headers manually after each response.
+# Update the after_request handler
 @app.after_request
 def add_cors_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    # Get the origin from the request
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        "http://localhost:3000",
+        "https://pitch-deck-analyzer-frontend.vercel.app",
+        "https://pitch-deck-analyzer.vercel.app"
+    ]
+    
+    if origin in allowed_origins:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
 # Create uploads directory if it doesn't exist

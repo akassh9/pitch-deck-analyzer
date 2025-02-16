@@ -31,9 +31,12 @@ export default function Page() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      console.log('Attempting to upload to:', apiUrl); // Debug log
+      
       const response = await fetch(`${apiUrl}/api/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Add this line
       });
 
       if (!response.ok) {

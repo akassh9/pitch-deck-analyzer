@@ -21,13 +21,25 @@ export default function LoadingPage() {
   useEffect(() => {
     const stepDuration = 2500 // 1.5 seconds per step
     const progressIncrement = 100 / steps.length
+    let maxChecks = 30; // 30 second timeout
 
     // Check for extracted text periodically
     const checkExtractedText = setInterval(() => {
       const extractedText = localStorage.getItem('extractedText')
+      console.log('Checking for extracted text:', !!extractedText); // Debug log
+      
       if (extractedText) {
+        console.log('Text found, redirecting to edit page');
         clearInterval(checkExtractedText)
         router.push('/edit')
+      } else {
+        maxChecks--;
+        if (maxChecks <= 0) {
+          console.log('Timeout reached, no text found');
+          clearInterval(checkExtractedText);
+          alert('Failed to process the document. Please try again.');
+          router.push('/');
+        }
       }
     }, 1000) // Check every second
 
