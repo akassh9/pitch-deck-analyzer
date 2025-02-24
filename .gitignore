@@ -3,6 +3,7 @@ venv/
 
 # Ignore environment variables
 .env
+.env.local
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

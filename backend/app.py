@@ -157,8 +157,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 genai.configure(api_key=GOOGLE_AI_STUDIO_API_KEY)
 
-print("Loaded API Key:", HF_API_KEY)
-print(f"Loaded Groq API Key: {GROQ_API_KEY[:5]}...")  # Print first 5 chars for security
+print("HF_API_KEY loaded:", "Yes" if HF_API_KEY else "No")
+print("GROQ_API_KEY loaded:", "Yes" if GROQ_API_KEY else "No")
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -232,7 +232,6 @@ def refine_text(text):
         "X-Title": "Your Site Name"
     }
     
-    # Increase chunk size to better utilize the 131K context window
     max_chunk_size = 2000
     chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
     refined_chunks = []
@@ -293,15 +292,18 @@ def refine_text(text):
     return refined_text
 
 def generate_investment_memo(text, is_refined=False):
-    """
-    Generates investment memo using Groq's deepseek-r1-distill-llama-70b-specdec model,
-    with OpenRouter's DeepSeek R1 as fallback
-    """
     if not is_refined:
         text = clean_text(text)
-    truncated_text = text[:3000]
     
-    # First try with Groq
+    # Determine input and token limits based on API availability
+    if GROQ_API_KEY:
+        input_text = text  # Use full text for Groq (128K context)
+        max_completion_tokens = 16384
+    else:
+        input_text = text[:3000]  # Truncate for OpenRouter (approx. 4K tokens limit)
+        max_completion_tokens = 4096
+
+    # Try Groq if available
     if GROQ_API_KEY:
         try:
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -309,7 +311,6 @@ def generate_investment_memo(text, is_refined=False):
                 "Authorization": f"Bearer {GROQ_API_KEY}",
                 "Content-Type": "application/json"
             }
-            
             data = {
                 "model": "deepseek-r1-distill-llama-70b",
                 "messages": [
@@ -323,18 +324,18 @@ def generate_investment_memo(text, is_refined=False):
                             "Generate a detailed investment memo based on the following pitch deck content. "
                             "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence by a venture capitalist. "
                             "It is not a final investment decision, but rather a preliminary assessment of the startup's potential. "
-                            "Your memo should include these sections: \n\n"
+                            "Your memo should include these sections:\n\n"
                             "1. Executive Summary – Summarize what the company does, its unique value proposition, and any standout features.\n"
                             "2. Market Opportunity – Analyze the market size, growth potential, and key trends.\n"
                             "3. Competitive Landscape – Evaluate the competitive environment and the startup's competitive edge.\n"
                             "4. Financial Highlights – Highlight key financial metrics and growth projections.\n\n"
-                            "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. Give it a score out of 5 "
-                            f"Pitch Deck Content: {truncated_text}"
+                            "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. "
+                            f"Pitch Deck Content: {input_text}"
                         )
                     }
                 ],
                 "temperature": 0.7,
-                "max_tokens": 4096
+                "max_tokens": max_completion_tokens
             }
             
             print("Calling Groq API for memo generation...")
@@ -347,23 +348,22 @@ def generate_investment_memo(text, is_refined=False):
                     memo = result["choices"][0]["message"]["content"].strip()
                     print("Successfully generated memo using Groq")
                     return memo
-                print("Unexpected Groq API response structure:", result)
+                else:
+                    print("Unexpected Groq API response structure:", result)
             else:
                 print(f"Groq API error {response.status_code}: {response.text}")
         except Exception as e:
             print(f"Exception in Groq API call: {str(e)}")
     
-    # Fallback to OpenRouter if Groq fails
+    # Fallback to OpenRouter for memo generation
     print("Falling back to OpenRouter for memo generation...")
-    API_URL = "https://openrouter.ai/api/v1/chat/completions"
-    
+    url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {HF_API_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://your-site-url.com",
         "X-Title": "Your Site Name"
     }
-    
     data = {
         "model": "deepseek/deepseek-r1:free",
         "messages": [
@@ -373,25 +373,25 @@ def generate_investment_memo(text, is_refined=False):
                     "Generate a detailed investment memo based on the following pitch deck content. "
                     "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence by a venture capitalist. "
                     "It is not a final investment decision, but rather a preliminary assessment of the startup's potential. "
-                    "Your memo should include these sections: \n\n"
+                    "Your memo should include these sections:\n\n"
                     "1. Executive Summary – Summarize what the company does, its unique value proposition, and any standout features.\n"
                     "2. Market Opportunity – Analyze the market size, growth potential, and key trends.\n"
                     "3. Competitive Landscape – Evaluate the competitive environment and the startup's competitive edge.\n"
                     "4. Financial Highlights – Highlight key financial metrics and growth projections.\n\n"
                     "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. "
-                    f"Pitch Deck Content: {truncated_text}"
+                    f"Pitch Deck Content: {text[:3000]}"
                 )
             }
         ]
     }
     
     try:
-        response = requests.post(API_URL, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
-            response_json = response.json()
-            if "choices" in response_json and response_json["choices"]:
+            result = response.json()
+            if "choices" in result and result["choices"]:
                 print("Successfully generated memo using OpenRouter")
-                return response_json["choices"][0]["message"]["content"]
+                return result["choices"][0]["message"]["content"].strip()
         print(f"OpenRouter API error {response.status_code}: {response.text}")
     except Exception as e:
         print(f"Exception in OpenRouter API call: {str(e)}")
