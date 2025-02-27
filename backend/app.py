@@ -13,7 +13,6 @@ import pytesseract
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-import google.generativeai as genai
 
 from utils import prepare_text, is_noise_page, needs_ocr, ocr_page
 
@@ -26,7 +25,6 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-genai.configure(api_key=GOOGLE_AI_STUDIO_API_KEY)
 
 app = Flask(__name__)
 # Use Flask-CORS with proper configuration only.
