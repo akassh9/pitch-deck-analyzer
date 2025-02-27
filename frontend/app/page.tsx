@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation'; // Changed from 'next/router'
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,31 +22,25 @@ export default function Page() {
     if (!file) return;
 
     setIsLoading(true);
-    localStorage.removeItem('extractedText');
-    
-    router.push('/loading');
     
     const formData = new FormData();
     formData.append('pdf_file', file);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      console.log('Attempting to upload to:', apiUrl); // Debug log
-      
       const response = await fetch(`${apiUrl}/api/upload`, {
         method: 'POST',
         body: formData,
-        credentials: 'include', // Add this line
+        credentials: 'include',
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-
       const data = await response.json();
       if (data.success) {
-        localStorage.setItem('extractedText', data.text);
+        localStorage.setItem('job_id', data.job_id);
+        router.push('/loading');
       } else {
         throw new Error(data.error || 'Upload failed');
       }
@@ -61,12 +55,9 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header Section */}
       <header className="absolute bottom-20 right-20">
         <h1 className="text-6xl font-serif font-bold">Kecha</h1>
       </header>
-
-      {/* Main Content Section */}
       <main className="flex-grow flex flex-col items-start justify-center ml-32">
         <h2 className="text-5xl font-serif mb-4">
           Harness the <span className="italic">raw.</span>
@@ -74,8 +65,6 @@ export default function Page() {
         <p className="text-muted-foreground text-sm max-w-md mb-8">
           Transforming startup evaluations with streamlined data intelligence.
         </p>
-
-        {/* Upload Form */}
         <form onSubmit={handleSubmit} className="flex flex-col items-start gap-4">
           <label htmlFor="pdf-upload" className="cursor-pointer">
             <div className="flex items-center gap-2 bg-transparent border border-border rounded-md px-4 py-2 hover:bg-secondary transition-colors">

@@ -1,139 +1,117 @@
 import os
 import re
-from flask import Flask, render_template, request, jsonify
-import PyPDF2
-from dotenv import load_dotenv
+import datetime
+import threading
+import uuid
 import requests
+import json
+import PyPDF2
+import pdfplumber
 from pdf2image import convert_from_path
 import pytesseract
-import pdfplumber
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
 import google.generativeai as genai
-import json
-from flask_cors import CORS  # Add this import
-import datetime
 
-# --- Helper Functions (existing ones) ---
-def is_noise_page(text):
-    # ... [existing code] ...
-    if not text:
-        return True
-    lower_text = text.lower()
-    noise_keywords = ['intro', 'introduction', 'thank you', 'thanks', 'acknowledgement', 'closing', 'end of presentation']
-    for keyword in noise_keywords:
-        if keyword in lower_text:
-            return True
-    return False
+from utils import prepare_text, is_noise_page, needs_ocr, ocr_page
 
-def advanced_fix_spaced_text(text):
-    # ... [existing code] ...
-    pattern = r'(?<!\S)((?:\w\s){2,}\w)(?!\S)'
-    def repl(match):
-        return match.group(1).replace(" ", "")
-    return re.sub(pattern, repl, text)
+load_dotenv()
 
-def fix_spaced_text(text):
-    # ... [existing code] ...
-    text = advanced_fix_spaced_text(text)
-    
-    def fix_line(line):
-        words = line.split()
-        if words and (sum(len(w) for w in words)) < 2:
-            return ''.join(words)
-        return line
-    return "\n".join(fix_line(line) for line in text.splitlines())
+# Environment keys
+HF_API_KEY = os.getenv("HF_API_KEY")
+GOOGLE_AI_STUDIO_API_KEY = os.getenv("GOOGLE_AI_STUDIO_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-def remove_noise(text):
-    # ... [existing code] ...
-    lines = text.split('\n')
-    freq = {}
-    for line in lines:
-        stripped = line.strip()
-        if stripped:
-            freq[stripped] = freq.get(stripped, 0) + 1
+genai.configure(api_key=GOOGLE_AI_STUDIO_API_KEY)
 
-    cleaned_lines = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped:
-            if freq.get(stripped, 0) > 2 and len(stripped) < 50:
-                continue
-            if re.match(r'^\d+(\s*/\s*\d+)?$', stripped):
-                continue
-        cleaned_lines.append(line)
-    return "\n".join(cleaned_lines)
+app = Flask(__name__)
+# Rely solely on Flask-CORS with proper configuration.
+CORS(app, resources={
+    r"/*": {
+        "origins": "http://localhost:3000",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"],
+        "supports_credentials": True
+    }
+})
 
-def insert_line_breaks(text, max_length=150):
-    sentences = re.split(r'(?<=[.])\s+', text)
-    new_sentences = []
-    for sentence in sentences:
-        if len(sentence) > max_length:
-            mid = len(sentence) // 2
-            break_point = sentence.rfind(" ", 0, mid) or mid
-            new_sentences.append(sentence[:break_point].strip())
-            new_sentences.append(sentence[break_point:].strip())  # Fixed: .trip() -> .strip()
-        else:
-            new_sentences.append(sentence)
-    return "\n".join(new_sentences)
+# Directory for uploads
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
 
-def clean_text(text):
-    # ... [existing code] ...
-    text = re.sub(r'\n+', '\n', text)
-    text = re.sub(r'\s+', ' ', text)
-    text = fix_spaced_text(text)
-    text = text.strip()
-    text = remove_noise(text)
-    text = insert_line_breaks(text)
-    return text
+# Global in-memory job store (for development use)
+jobs = {}  # { job_id: {"status": "pending"/"complete"/"error", "result": <text or error>} }
 
-def needs_ocr(text):
-    # ... [existing code] ...
-    if not text or len(text.strip()) < 20:
-        return True
-    words = text.split()
-    if words and (sum(len(w) for w in words)) < 2:
-        return True
-    non_alpha = sum(1 for c in text if not c.isalnum() and not c.isspace())
-    if len(text) > 0 and non_alpha / len(text) > 0.5:
-        return True
-    return False
+# Background processing function for the uploaded PDF
+def process_pdf_job(file_path, job_id):
+    try:
+        extracted_text = ""
+        with open(file_path, 'rb') as f:
+            reader = PyPDF2.PdfReader(f)
+            total_pages = len(reader.pages)
+            for i in range(total_pages):
+                page = reader.pages[i]
+                page_text = page.extract_text()
+                if needs_ocr(page_text):
+                    try:
+                        with pdfplumber.open(file_path) as pdf:
+                            page_plumber = pdf.pages[i]
+                            page_text_alt = page_plumber.extract_text()
+                            if page_text_alt and len(page_text_alt.strip()) > len(page_text.strip()):
+                                page_text = page_text_alt
+                    except Exception as e:
+                        app.logger.error(f"pdfplumber error on page {i+1}: {e}")
+                    if needs_ocr(page_text):
+                        try:
+                            images = convert_from_path(file_path, dpi=300, first_page=i+1, last_page=i+1)
+                            if images:
+                                page_text = ocr_page(images[0])
+                        except Exception as e:
+                            app.logger.error(f"OCR error on page {i+1}: {e}")
+                if not is_noise_page(page_text):
+                    extracted_text += page_text + "\n"
+        # Process the extracted text with AI refinement enabled
+        processed_text = prepare_text(extracted_text, refine=True)
+        jobs[job_id]["result"] = processed_text
+        jobs[job_id]["status"] = "complete"
+    except Exception as e:
+        jobs[job_id]["result"] = str(e)
+        jobs[job_id]["status"] = "error"
+    finally:
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
 
-def ocr_page(image):
-    # ... [existing code] ...
-    custom_config = r'--oem 3 --psm 6'
-    return pytesseract.image_to_string(image, config=custom_config)
-
-# --- New Functions for Data Validation with External APIs ---
+@app.route('/')
+def health_check():
+    return jsonify({"status": "healthy"})
 
 def google_custom_search(query, api_key, cse_id):
-    """
-    Performs a search using Google Custom Search API and returns the top 3 results.
-    """
     url = "https://www.googleapis.com/customsearch/v1"
     params = {"key": api_key, "cx": cse_id, "q": query}
     response = requests.get(url, params=params)
     if response.status_code == 200:
         results = response.json()
         items = results.get("items", [])
-        # Return top 3 results as a list of dicts containing title, snippet, and link.
         return [{"title": item["title"], "snippet": item["snippet"], "link": item["link"]} for item in items[:3]]
     else:
-        print(f"Google Custom Search error {response.status_code}: {response.text}")
+        app.logger.error(f"Google Custom Search error {response.status_code}: {response.text}")
         return None
 
 def validate_investment_memo(memo, google_api_key, cse_id):
-    """
-    Runs a set of predefined queries to validate key sections of the investment memo.
-    Appends a Validation Summary with external sources to the memo.
-    """
     validation_summary = "\n\n### Validation Summary:\n"
-    
-    # Define queries for the different sections.
     queries = {
         "Market Opportunity": "current market size and growth trends for the industry mentioned in a startup pitch deck",
         "Competitive Landscape": "major competitors for startups in [industry] and their competitive advantages",
         "Financial Highlights": "typical financial metrics and growth projections for startups in [industry]"
     }
-    
     for section, query in queries.items():
         validation_summary += f"\n**{section}:**\n"
         results = google_custom_search(query, google_api_key, cse_id)
@@ -142,168 +120,18 @@ def validate_investment_memo(memo, google_api_key, cse_id):
                 validation_summary += f"- [{res['title']}]({res['link']}): {res['snippet']}\n"
         else:
             validation_summary += "- No validation results found.\n"
-    
-    # Append the validation summary to the original memo.
     return memo + validation_summary
 
-# --- End New Functions ---
-
-load_dotenv()
-HF_API_KEY = os.getenv("HF_API_KEY") #openrouter
-GOOGLE_AI_STUDIO_API_KEY = os.getenv("GOOGLE_AI_STUDIO_API_KEY") #google ai studio
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-genai.configure(api_key=GOOGLE_AI_STUDIO_API_KEY)
-
-print("HF_API_KEY loaded:", "Yes" if HF_API_KEY else "No")
-print("GROQ_API_KEY loaded:", "Yes" if GROQ_API_KEY else "No")
-
-app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:3000",  # Development
-            "https://pitch-deck-analyzer-frontend.vercel.app",  # Production - Remove trailing slash
-            "https://pitch-deck-analyzer.vercel.app"  # Alternative production URL
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"],
-        "supports_credentials": True
-    }
-})
-
-# Update the after_request handler
-@app.after_request
-def add_cors_headers(response):
-    # Get the origin from the request
-    origin = request.headers.get('Origin')
-    allowed_origins = [
-        "http://localhost:3000",
-        "https://pitch-deck-analyzer-frontend.vercel.app",
-        "https://pitch-deck-analyzer.vercel.app"
-    ]
-    
-    if origin in allowed_origins:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
-# Create uploads directory if it doesn't exist
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
-
-def refine_text(text):
-    """
-    Uses OpenRouter's nvidia/llama-3.1-nemotron-70b-instruct model to improve text readability
-    """
-    # Add logging functionality at the start
-    log_dir = os.path.join(os.getcwd(), 'logs')
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    
-    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    log_file = os.path.join(log_dir, f'raw_text_{timestamp}.txt')
-    
-    # Log the original text
-    with open(log_file, 'w', encoding='utf-8') as f:
-        f.write("=== Original Text ===\n\n")
-        f.write(text)
-        f.write("\n\n=== End Original Text ===")
-    
-    print(f"Raw text logged to: {log_file}")
-
-    if not HF_API_KEY:  # Using HF_API_KEY for OpenRouter
-        print("Warning: HF_API_KEY is not set")
-        return text
-        
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    
-    headers = {
-        "Authorization": f"Bearer {HF_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://your-site-url.com",
-        "X-Title": "Your Site Name"
-    }
-    
-    max_chunk_size = 2000
-    chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
-    refined_chunks = []
-    
-    for chunk in chunks:
-        data = {
-            "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "Your task is to remove only unnecessary whitespace, extra newlines, and redundant paragraph breaks from the text. "
-                        "Do not change, add, or remove any words or information. Simply return the text with improved formatting."
-                    )
-                },
-                {
-                     "role": "user",
-                     "content": f"Please return only the cleaned text, with all unnecessary whitespace removed, and no additional headers or explanations. Text:\n\n{chunk}"
-                }
-            ],
-            "temperature": 0.5,
-            "max_tokens": 130000,
-            "top_p": 1.0,
-            "top_k": 0,
-            "frequency_penalty": 0.0,
-            "presence_penalty": 0.0,
-            "repetition_penalty": 1.0,
-            "min_p": 0.0,
-            "top_a": 0.0
-        }
-
-        try:
-            print(f"Calling OpenRouter API for chunk of length {len(chunk)}...")
-            response = requests.post(url, headers=headers, json=data)
-            print(f"OpenRouter API Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                print("Response received from OpenRouter")
-                print(f"Response structure: {list(result.keys())}")
-                
-                if "choices" in result and len(result["choices"]) > 0:
-                    refined_chunk = result["choices"][0]["message"]["content"].strip()
-                    refined_chunks.append(refined_chunk)
-                    print(f"Successfully refined chunk of length {len(chunk)} -> {len(refined_chunk)}")
-                else:
-                    print(f"Unexpected response structure: {result}")
-                    refined_chunks.append(chunk)
-            else:
-                print(f"Error {response.status_code}: {response.text}")
-                refined_chunks.append(chunk)
-        except Exception as e:
-            print(f"Exception in OpenRouter API call: {str(e)}")
-            refined_chunks.append(chunk)
-    
-    # Combine refined chunks
-    refined_text = "\n".join(refined_chunks)
-    return refined_text
-
-def generate_investment_memo(text, is_refined=False):
-    if not is_refined:
-        text = clean_text(text)
-    
-    # Determine input and token limits based on API availability
+def generate_investment_memo(text, is_prepared=False):
+    if not is_prepared:
+        text = prepare_text(text, refine=False)
     if GROQ_API_KEY:
-        input_text = text  # Use full text for Groq (128K context)
+        input_text = text
         max_completion_tokens = 16384
     else:
-        input_text = text[:3000]  # Truncate for OpenRouter (approx. 4K tokens limit)
+        input_text = text[:3000]
         max_completion_tokens = 4096
 
-    # Try Groq if available
     if GROQ_API_KEY:
         try:
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -322,14 +150,9 @@ def generate_investment_memo(text, is_refined=False):
                         "role": "user",
                         "content": (
                             "Generate a detailed investment memo based on the following pitch deck content. "
-                            "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence by a venture capitalist. "
-                            "It is not a final investment decision, but rather a preliminary assessment of the startup's potential. "
+                            "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence. "
                             "Your memo should include these sections:\n\n"
-                            "1. Executive Summary – Summarize what the company does, its unique value proposition, and any standout features.\n"
-                            "2. Market Opportunity – Analyze the market size, growth potential, and key trends.\n"
-                            "3. Competitive Landscape – Evaluate the competitive environment and the startup's competitive edge.\n"
-                            "4. Financial Highlights – Highlight key financial metrics and growth projections.\n\n"
-                            "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. "
+                            "1. Executive Summary\n2. Market Opportunity\n3. Competitive Landscape\n4. Financial Highlights\n\n"
                             f"Pitch Deck Content: {input_text}"
                         )
                     }
@@ -337,32 +160,22 @@ def generate_investment_memo(text, is_refined=False):
                 "temperature": 0.7,
                 "max_tokens": max_completion_tokens
             }
-            
-            print("Calling Groq API for memo generation...")
             response = requests.post(url, headers=headers, json=data)
-            print(f"Groq API Response Status: {response.status_code}")
-            
             if response.status_code == 200:
                 result = response.json()
-                if "choices" in result and len(result["choices"]) > 0:
-                    memo = result["choices"][0]["message"]["content"].strip()
-                    print("Successfully generated memo using Groq")
-                    return memo
+                if "choices" in result and result["choices"]:
+                    return result["choices"][0]["message"]["content"].strip()
                 else:
-                    print("Unexpected Groq API response structure:", result)
+                    app.logger.error("Unexpected Groq API response structure")
             else:
-                print(f"Groq API error {response.status_code}: {response.text}")
+                app.logger.error(f"Groq API error {response.status_code}: {response.text}")
         except Exception as e:
-            print(f"Exception in Groq API call: {str(e)}")
+            app.logger.error(f"Exception in Groq API call: {str(e)}")
     
-    # Fallback to OpenRouter for memo generation
-    print("Falling back to OpenRouter for memo generation...")
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {HF_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://your-site-url.com",
-        "X-Title": "Your Site Name"
     }
     data = {
         "model": "deepseek/deepseek-r1:free",
@@ -371,114 +184,48 @@ def generate_investment_memo(text, is_refined=False):
                 "role": "user",
                 "content": (
                     "Generate a detailed investment memo based on the following pitch deck content. "
-                    "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence by a venture capitalist. "
-                    "It is not a final investment decision, but rather a preliminary assessment of the startup's potential. "
+                    "This memo is intended as a first-level analysis to help determine whether the startup is worth pursuing for further due diligence. "
                     "Your memo should include these sections:\n\n"
-                    "1. Executive Summary – Summarize what the company does, its unique value proposition, and any standout features.\n"
-                    "2. Market Opportunity – Analyze the market size, growth potential, and key trends.\n"
-                    "3. Competitive Landscape – Evaluate the competitive environment and the startup's competitive edge.\n"
-                    "4. Financial Highlights – Highlight key financial metrics and growth projections.\n\n"
-                    "Using your own words and analysis, please provide a comprehensive memo that indicates whether the startup is worth further investigation. "
-                    f"Pitch Deck Content: {text[:3000]}"
+                    "1. Executive Summary\n2. Market Opportunity\n3. Competitive Landscape\n4. Financial Highlights\n\n"
+                    f"Pitch Deck Content: {input_text}"
                 )
             }
         ]
     }
-    
     try:
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
             result = response.json()
             if "choices" in result and result["choices"]:
-                print("Successfully generated memo using OpenRouter")
                 return result["choices"][0]["message"]["content"].strip()
-        print(f"OpenRouter API error {response.status_code}: {response.text}")
+        else:
+            app.logger.error(f"OpenRouter API error {response.status_code}: {response.text}")
     except Exception as e:
-        print(f"Exception in OpenRouter API call: {str(e)}")
+        app.logger.error(f"Exception in OpenRouter API call: {str(e)}")
     
     return "Failed to generate investment memo using both services."
-
-@app.route('/')
-def health_check():
-    return jsonify({"status": "healthy"})
-
-@app.route('/api/upload', methods=['POST', 'OPTIONS'])
-def upload_pdf():
-    if request.method == 'OPTIONS':
-        # Respond to preflight request
-        response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 200
-
-    try:
-        print("Received upload request")
-        print("Files in request:", request.files)
-        
-        if 'pdf_file' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        
-        file = request.files['pdf_file']
-        print("File name:", file.filename)
-        
-        if not file or file.filename == '':
-            return jsonify({"error": "No file selected"}), 400
-            
-        if not file.filename.endswith('.pdf'):
-            return jsonify({"error": "File must be a PDF"}), 400
-
-        print(f"Received file: {file.filename}")
-        
-        # Your existing PDF processing logic
-        extracted_text = process_pdf(file)
-        print(f"Extracted text length: {len(extracted_text)}")
-        
-        refined_text = refine_text(extracted_text)
-        print(f"Refined text length: {len(refined_text)}")
-        
-        return jsonify({
-            "success": True,
-            "text": refined_text
-        })
-    except Exception as e:
-        print(f"Error processing upload: {str(e)}")
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/generate_memo', methods=['POST'])
 def generate_memo():
     edited_text = request.form.get('edited_text')
     if not edited_text:
         return "No text provided for memo generation.", 400
-
     try:
-        # Refine the edited text using Groq
-        refined_text = refine_text(edited_text)
-        if refined_text == edited_text:
-            print("Warning: Text refinement may have failed")
-        
-        # Generate the investment memo
-        investment_memo = generate_investment_memo(refined_text, is_refined=True)
-        return render_template('result.html', text=investment_memo, raw_text=refined_text)
+        prepared_text = prepare_text(edited_text, refine=True)
+        investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
+        return render_template('result.html', text=investment_memo, raw_text=prepared_text)
     except Exception as e:
-        print(f"Error in generate_memo: {str(e)}")
+        app.logger.error(f"Error in generate_memo: {str(e)}")
         return f"An error occurred while processing your request: {str(e)}", 500
 
 @app.route('/validate_selection', methods=['POST'])
 def validate_selection():
     data = request.get_json()
     selected_text = data.get("selected_text", "")
-    
     if not selected_text:
         return jsonify({"error": "No text selected."}), 400
-
-    # Build the query (optional: you could add a prefix or context)
     query = "validate: " + selected_text
-
     results = google_custom_search(query, GOOGLE_API_KEY, GOOGLE_CSE_ID)
-    
-    # Build a refined HTML layout using Tailwind classes
     validation_html = '''
     <div class="validation-container p-4 bg-gray-900 rounded-lg shadow-lg">
       <h3 class="text-xl font-bold mb-4 text-blue-300">Validation Results</h3>
@@ -495,102 +242,68 @@ def validate_selection():
             '''
     else:
         validation_html += '<p class="text-gray-300">No validation results found.</p>'
-    
     validation_html += '</div>'
     return jsonify({"validation_html": validation_html})
 
-@app.route('/test_groq', methods=['GET'])
-def test_groq():
-    test_text = "This is a test text to check if Groq API is working properly."
-    result = refine_text(test_text)
+# New endpoint for checking job status
+@app.route('/api/status', methods=['GET'])
+def job_status():
+    job_id = request.args.get('job_id')
+    if not job_id:
+        return jsonify({"error": "Missing job_id parameter"}), 400
+    job = jobs.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
     return jsonify({
-        "original": test_text,
-        "refined": result,
-        "api_key_present": bool(GROQ_API_KEY),
-        "api_key_preview": GROQ_API_KEY[:5] if GROQ_API_KEY else None
+        "job_id": job_id,
+        "status": job["status"],
+        "result": job["result"]
     })
 
-@app.route('/test_groq_direct', methods=['GET'])
-def test_groq_direct():
-    """
-    Test route to verify Groq API functionality
-    """
-    test_text = "This is a test text. Please improve its readability."
-    print("Testing Groq API directly...")
-    result = refine_text(test_text)
-    success = result != test_text
-    
-    return jsonify({
-        "success": success,
-        "original": test_text,
-        "refined": result,
-        "api_key_present": bool(GROQ_API_KEY),
-        "api_key_preview": GROQ_API_KEY[:5] if GROQ_API_KEY else None
-    })
+# Modified upload endpoint to use asynchronous processing
+@app.route('/api/upload', methods=['POST', 'OPTIONS'])
+def upload_pdf():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
 
-# Update other routes to return JSON
-@app.route('/api/generate-memo', methods=['POST'])
+    try:
+        if 'pdf_file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+        file = request.files['pdf_file']
+        if not file or file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+        if not file.filename.endswith('.pdf'):
+            return jsonify({"error": "File must be a PDF"}), 400
+
+        # Save the file
+        job_id = str(uuid.uuid4())
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+
+        # Create job record and start background processing thread
+        jobs[job_id] = {"status": "pending", "result": None}
+        thread = threading.Thread(target=process_pdf_job, args=(file_path, job_id))
+        thread.start()
+
+        return jsonify({"success": True, "job_id": job_id})
+    except Exception as e:
+        app.logger.error(f"Error processing upload: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# IMPORTANT: Modified /api/generate-memo endpoint now allows OPTIONS for preflight requests.
+@app.route('/api/generate-memo', methods=['POST', 'OPTIONS'])
 def generate_memo_api():
+    if request.method == 'OPTIONS':
+        # Return an empty response for preflight checks
+        return jsonify({}), 200
     data = request.get_json()
     text = data.get('text')
-
     if not text:
         return jsonify({"error": "No text provided"}), 400
-
-    # Your memo generation logic here
-    memo = generate_investment_memo(text)
-
-    # Ensure memo is not None
+    memo = generate_investment_memo(text, is_prepared=False)
     if memo is None:
         return jsonify({"error": "Memo generation failed"}), 500
-
     return jsonify({"success": True, "memo": memo})
-
-def process_pdf(file):
-    """
-    Process uploaded PDF file and extract text
-    """
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(file_path)
-    
-    try:
-        extracted_text = ""
-        with open(file_path, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            total_pages = len(reader.pages)
-            
-            for i in range(total_pages):
-                page = reader.pages[i]
-                page_text = page.extract_text()
-                
-                if needs_ocr(page_text):
-                    try:
-                        with pdfplumber.open(file_path) as pdf:
-                            page_plumber = pdf.pages[i]
-                            page_text_alt = page_plumber.extract_text()
-                            if page_text_alt and len(page_text_alt.strip()) > len(page_text.strip()):
-                                page_text = page_text_alt
-                    except Exception as e:
-                        print(f"pdfplumber error on page {i+1}: {e}")
-                    
-                    if needs_ocr(page_text):
-                        try:
-                            images = convert_from_path(file_path, dpi=300, first_page=i+1, last_page=i+1)
-                            if images:
-                                page_text = ocr_page(images[0])
-                        except Exception as e:
-                            print(f"OCR error on page {i+1}: {e}")
-                
-                if not is_noise_page(page_text):
-                    extracted_text += page_text + "\n"
-        
-        return clean_text(extracted_text)
-    finally:
-        # Clean up temporary file
-        try:
-            os.remove(file_path)
-        except:
-            pass
 
 if __name__ == '__main__':
     app.run(debug=True)

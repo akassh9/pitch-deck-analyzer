@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
     try {
         const { selected_text } = await request.json();
-
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
         const backendResponse = await fetch(`${apiUrl}/validate_selection`, {
             method: 'POST',
@@ -12,17 +11,13 @@ export async function POST(request: Request) {
             },
             body: JSON.stringify({ selected_text }),
         });
-
         if (!backendResponse.ok) {
             const errorText = await backendResponse.text();
             throw new Error(errorText);
         }
-
         const backendData = await backendResponse.json();
-        
-        // Ensure HTML tags are preserved
         return new Response(JSON.stringify({
-            validation_html: backendData.response_text,
+            validation_html: backendData.validation_html,
             status: 'success'
         }), {
             headers: {

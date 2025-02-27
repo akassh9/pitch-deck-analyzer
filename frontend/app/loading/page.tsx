@@ -1,8 +1,7 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { CircularProgress } from '@mui/material'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   'Parsing PDF content...',
@@ -11,58 +10,51 @@ const steps = [
   'Removing redundant content...',
   'Improving text readability...',
   'Preparing content for analysis...'
-]
+];
 
 export default function LoadingPage() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [progress, setProgress] = useState(0)
-  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    const stepDuration = 2500 // 1.5 seconds per step
-    const progressIncrement = 100 / steps.length
-    let maxChecks = 30; // 30 second timeout
-
-    // Check for extracted text periodically
-    const checkExtractedText = setInterval(() => {
-      const extractedText = localStorage.getItem('extractedText')
-      console.log('Checking for extracted text:', !!extractedText); // Debug log
-      
-      if (extractedText) {
-        console.log('Text found, redirecting to edit page');
-        clearInterval(checkExtractedText)
-        router.push('/edit')
-      } else {
-        maxChecks--;
-        if (maxChecks <= 0) {
-          console.log('Timeout reached, no text found');
-          clearInterval(checkExtractedText);
-          alert('Failed to process the document. Please try again.');
-          router.push('/');
-        }
-      }
-    }, 1000) // Check every second
-
-    const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev === steps.length - 1) {
-          return prev // Stay on last step until text is ready
-        }
-        return prev + 1
-      })
-
-      setProgress((prev) => {
-        const next = prev + progressIncrement
-        return next > 100 ? 100 : next
-      })
-    }, stepDuration)
-
-    // Cleanup intervals on unmount
-    return () => {
-      clearInterval(stepInterval)
-      clearInterval(checkExtractedText)
+    const job_id = localStorage.getItem('job_id');
+    if (!job_id) {
+      router.push('/');
+      return;
     }
-  }, [router])
+    const stepDuration = 2500;
+    const progressIncrement = 100 / steps.length;
+    
+    const stepInterval = setInterval(() => {
+      setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+      setProgress((prev) => Math.min(prev + progressIncrement, 100));
+    }, stepDuration);
+    
+    const checkStatusInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/status?job_id=${job_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.status === 'complete') {
+            localStorage.setItem('extractedText', data.result);
+            localStorage.removeItem('job_id');
+            clearInterval(checkStatusInterval);
+            clearInterval(stepInterval);
+            router.push('/edit');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching job status:', error);
+      }
+    }, 1000);
+    
+    return () => {
+      clearInterval(checkStatusInterval);
+      clearInterval(stepInterval);
+    };
+  }, [router, apiUrl]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-8">
@@ -71,7 +63,6 @@ export default function LoadingPage() {
           <h2 className="text-2xl font-bold mb-2">Processing Your Document</h2>
           <p className="text-muted-foreground">Please wait while we prepare your content</p>
         </div>
-
         <div className="relative mb-6">
           <div className="w-full h-2 bg-secondary rounded-full">
             <div
@@ -80,37 +71,22 @@ export default function LoadingPage() {
             />
           </div>
         </div>
-
         <div className="space-y-4">
           {steps.map((step, index) => (
             <div
               key={step}
-              className={`flex items-center space-x-3 transition-opacity duration-300 ${
-                index > currentStep ? 'opacity-40' : 'opacity-100'
-              }`}
+              className={`flex items-center space-x-3 transition-opacity duration-300 ${index > currentStep ? 'opacity-40' : 'opacity-100'}`}
             >
               {index <= currentStep ? (
                 <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-primary-foreground"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               ) : (
                 <div className="w-6 h-6 rounded-full border-2 border-secondary" />
               )}
-              <span
-                className={`${
-                  index === currentStep ? 'text-primary font-medium' : ''
-                }`}
-              >
+              <span className={`${index === currentStep ? 'text-primary font-medium' : ''}`}>
                 {step}
               </span>
             </div>
@@ -118,5 +94,5 @@ export default function LoadingPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
