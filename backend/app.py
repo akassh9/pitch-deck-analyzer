@@ -3,6 +3,7 @@ import re
 import datetime
 import threading
 import uuid
+import time  # <-- Added for artificial delay
 import requests
 import json
 import PyPDF2
@@ -28,7 +29,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 genai.configure(api_key=GOOGLE_AI_STUDIO_API_KEY)
 
 app = Flask(__name__)
-# Rely solely on Flask-CORS with proper configuration.
+# Use Flask-CORS with proper configuration only.
 CORS(app, resources={
     r"/*": {
         "origins": "http://localhost:3000",
@@ -46,7 +47,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
 
 # Global in-memory job store (for development use)
-jobs = {}  # { job_id: {"status": "pending"/"complete"/"error", "result": <text or error>} }
+# Each job record includes "status", "result", and "progress"
+jobs = {}  # { job_id: {"status": "pending"/"complete"/"error", "result": <text or error>, "progress": number } }
 
 # Background processing function for the uploaded PDF
 def process_pdf_job(file_path, job_id):
@@ -55,6 +57,7 @@ def process_pdf_job(file_path, job_id):
         with open(file_path, 'rb') as f:
             reader = PyPDF2.PdfReader(f)
             total_pages = len(reader.pages)
+            # Process each page with an artificial delay for smoother progress updates.
             for i in range(total_pages):
                 page = reader.pages[i]
                 page_text = page.extract_text()
@@ -76,10 +79,17 @@ def process_pdf_job(file_path, job_id):
                             app.logger.error(f"OCR error on page {i+1}: {e}")
                 if not is_noise_page(page_text):
                     extracted_text += page_text + "\n"
-        # Process the extracted text with AI refinement enabled
-        processed_text = prepare_text(extracted_text, refine=True)
-        jobs[job_id]["result"] = processed_text
+                # Update progress for extraction phase (scale extraction to 80% of total progress)
+                jobs[job_id]["progress"] = int(((i + 1) / total_pages) * 80)
+                time.sleep(0.6)  # <-- Artificial delay for smoother progress updates
+        # Extraction is complete; ensure progress is set to 80%
+        jobs[job_id]["progress"] = 80
+
+        # Now perform AI refinement (this phase will jump progress from 80% to 100% when done)
+        refined_text = prepare_text(extracted_text, refine=True)
+        jobs[job_id]["result"] = refined_text
         jobs[job_id]["status"] = "complete"
+        jobs[job_id]["progress"] = 100
     except Exception as e:
         jobs[job_id]["result"] = str(e)
         jobs[job_id]["status"] = "error"
@@ -245,7 +255,7 @@ def validate_selection():
     validation_html += '</div>'
     return jsonify({"validation_html": validation_html})
 
-# New endpoint for checking job status
+# New endpoint for checking job status (including progress)
 @app.route('/api/status', methods=['GET'])
 def job_status():
     job_id = request.args.get('job_id')
@@ -257,6 +267,7 @@ def job_status():
     return jsonify({
         "job_id": job_id,
         "status": job["status"],
+        "progress": job.get("progress", 0),
         "result": job["result"]
     })
 
@@ -281,7 +292,7 @@ def upload_pdf():
         file.save(file_path)
 
         # Create job record and start background processing thread
-        jobs[job_id] = {"status": "pending", "result": None}
+        jobs[job_id] = {"status": "pending", "result": None, "progress": 0}
         thread = threading.Thread(target=process_pdf_job, args=(file_path, job_id))
         thread.start()
 
@@ -290,11 +301,10 @@ def upload_pdf():
         app.logger.error(f"Error processing upload: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-# IMPORTANT: Modified /api/generate-memo endpoint now allows OPTIONS for preflight requests.
+# Modified /api/generate-memo endpoint to support preflight OPTIONS
 @app.route('/api/generate-memo', methods=['POST', 'OPTIONS'])
 def generate_memo_api():
     if request.method == 'OPTIONS':
-        # Return an empty response for preflight checks
         return jsonify({}), 200
     data = request.get_json()
     text = data.get('text')
