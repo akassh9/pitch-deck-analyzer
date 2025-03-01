@@ -27,6 +27,52 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 app = Flask(__name__)
+
+from flask import jsonify
+from werkzeug.exceptions import HTTPException
+
+# Global error handler for unhandled exceptions
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # If the error is an HTTPException, use its provided status code and message.
+    if isinstance(e, HTTPException):
+        response = e.get_response()
+        response.data = jsonify({
+            "error": e.name,
+            "description": e.description,
+        }).data
+        response.content_type = "application/json"
+        app.logger.error(f"HTTP Exception: {e.name} - {e.description}")
+        return response
+
+    # Log the error with traceback for debugging.
+    app.logger.error("Unhandled Exception", exc_info=True)
+
+    # For non-HTTP exceptions, return a generic error message.
+    return jsonify({
+        "error": "Internal Server Error",
+        "description": "An unexpected error occurred. Please try again later."
+    }), 500
+
+import logging
+
+# Configure logging: log to console with detailed formatting.
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Optionally, configure a file handler if persistent logging is needed.
+file_handler = logging.FileHandler("app.log")
+file_handler.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+app.logger.addHandler(file_handler)
+
+class ApplicationError(Exception):
+    def __init__(self, message, status_code=400):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
 # Use Flask-CORS with proper configuration only.
 CORS(app, resources={
     r"/*": {
@@ -217,14 +263,11 @@ def generate_investment_memo(text, is_prepared=False):
 def generate_memo():
     edited_text = request.form.get('edited_text')
     if not edited_text:
-        return "No text provided for memo generation.", 400
-    try:
-        prepared_text = prepare_text(edited_text, refine=True)
-        investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
-        return render_template('result.html', text=investment_memo, raw_text=prepared_text)
-    except Exception as e:
-        app.logger.error(f"Error in generate_memo: {str(e)}")
-        return f"An error occurred while processing your request: {str(e)}", 500
+        # You can directly raise an error here instead of handling it locally.
+        raise ApplicationError("No text provided for memo generation.", status_code=400)
+    prepared_text = prepare_text(edited_text, refine=True)
+    investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
+    return render_template('result.html', text=investment_memo, raw_text=prepared_text)
 
 @app.route('/validate_selection', methods=['POST'])
 def validate_selection():
