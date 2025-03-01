@@ -9,3 +9,4 @@ pdfplumber>=0.6.0
 google-generativeai>=0.1.0
 fpdf>=1.7.2
 gunicorn>=20.0.0
+redis
