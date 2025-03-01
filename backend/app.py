@@ -74,7 +74,10 @@ class ApplicationError(Exception):
 # Use Flask-CORS with proper configuration only.
 CORS(app, resources={
     r"/*": {
-        "origins": "http://localhost:3000",
+        "origins": [
+            "http://localhost:3000",
+            "https://pitch-deck-analyzer-frontend.vercel.app"
+        ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"],
         "supports_credentials": True
