@@ -5,11 +5,9 @@ import requests
 import pytesseract
 from pdf2image import convert_from_path
 import pdfplumber
-from dotenv import load_dotenv
+from config import Config
 
-load_dotenv()
-
-DEBUG_LOGGING = os.getenv("DEBUG_LOGGING", "False").lower() in ("true", "1")
+DEBUG_LOGGING = Config.DEBUG_LOGGING
 
 def is_noise_page(text):
     if not text:
@@ -92,8 +90,8 @@ def ocr_page(image):
     return pytesseract.image_to_string(image, config=custom_config)
 
 def refine_text(text):
-    HF_API_KEY = os.getenv("HF_API_KEY")
-    if not HF_API_KEY:
+    # Use the central configuration to access the API key.
+    if not Config.HF_API_KEY:
         return text
     if DEBUG_LOGGING:
         log_dir = os.path.join(os.getcwd(), 'logs')
@@ -107,7 +105,7 @@ def refine_text(text):
             f.write("\n\n=== End Raw Text ===")
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {HF_API_KEY}",
+        "Authorization": f"Bearer {Config.HF_API_KEY}",
         "Content-Type": "application/json",
     }
     max_chunk_size = 2000
