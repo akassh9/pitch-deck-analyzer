@@ -76,7 +76,8 @@ CORS(app, resources={
     r"/*": {
         "origins": [
             "http://localhost:3000",
-            "https://pitch-deck-analyzer-frontend.vercel.app"
+            "https://pitch-deck-analyzer-frontend.vercel.app",
+            "https://pitch-deck-analyzer-fkl0.onrender.com"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"],
