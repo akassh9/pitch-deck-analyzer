@@ -85,7 +85,7 @@ export default function EditText() {
           <textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
-            className="w-full h-[calc(100vh-300px)] p-4 bg-secondary text-secondary-foreground rounded-md mb-6 resize-none overflow-auto"
+            className="w-full h-[calc(100vh-300px)] p-4 bg-secondary text-secondary-foreground rounded-md mb-6 resize-none overflow-auto font-serif"
           />
           <div className="flex justify-end">
             <button
