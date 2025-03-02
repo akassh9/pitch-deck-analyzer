@@ -11,11 +11,24 @@ export default function EditText() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  // A simple custom function to strip markdown syntax
+  function stripMarkdown(markdownText: string): string {
+    return markdownText
+      .replace(/(\*\*|__)(.*?)\1/g, '$2')    // bold/italic
+      .replace(/(\*|_)(.*?)\1/g, '$2')         // italic
+      .replace(/!\[.*?\]\(.*?\)/g, '')          // images
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')        // links
+      .replace(/^\s*>+\s?/gm, '')               // blockquotes
+      .replace(/^\s*[-+*]\s+/gm, '')            // unordered list markers
+      .replace(/^\s*\d+\.\s+/gm, '')             // ordered list markers
+      .replace(/`{1,3}([^`]*)`{1,3}/g, '$1');    // inline code
+  }
+
   useEffect(() => {
     const extractedText = localStorage.getItem('extractedText')
     if (extractedText) {
-      setEditedText(extractedText)
-      // Removed localStorage.removeItem('extractedText') to preserve the text
+      const plainText = stripMarkdown(extractedText)
+      setEditedText(plainText)
     } else {
       router.push('/')
     }
@@ -24,7 +37,6 @@ export default function EditText() {
   useEffect(() => {
     // Lock scroll on mount
     document.body.style.overflow = 'hidden'
-
     // Cleanup function to restore scroll when component unmounts
     return () => {
       document.body.style.overflow = 'unset'
@@ -36,7 +48,7 @@ export default function EditText() {
     setIsLoading(true)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
       const response = await fetch(`${apiUrl}/api/generate-memo`, {
         method: 'POST',
         headers: {
@@ -69,14 +81,12 @@ export default function EditText() {
     <div className="h-screen bg-background text-foreground flex flex-col p-8">
       <div className="w-3/4 mx-auto flex flex-col mt-18">
         <h1 className="text-4xl font-serif mb-6">Edit Extracted Text</h1>
-
         <form onSubmit={handleSubmit} className="flex flex-col flex-1">
           <textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
             className="w-full h-[calc(100vh-300px)] p-4 bg-secondary text-secondary-foreground rounded-md mb-6 resize-none overflow-auto"
           />
-
           <div className="flex justify-end">
             <button
               type="submit"

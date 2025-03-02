@@ -120,6 +120,7 @@ def refine_text(text):
                     "content": (
                         "Remove only unnecessary whitespace, extra newlines, and redundant paragraph breaks. "
                         "Return the text with improved formatting without altering its content."
+                        "Only return the improved text, do not add any instructions/confimrations/commnets."
                     )
                 },
                 {
