@@ -13,7 +13,6 @@ def process_pdf_job(file_path, job_id):
         with open(file_path, 'rb') as f:
             reader = PyPDF2.PdfReader(f)
             total_pages = len(reader.pages)
-            # Process each page with an artificial delay for smoother progress updates.
             for i in range(total_pages):
                 page = reader.pages[i]
                 page_text = page.extract_text()
@@ -39,14 +38,15 @@ def process_pdf_job(file_path, job_id):
                 # Update progress for extraction phase (scale extraction to 80% of total progress)
                 progress = int(((i + 1) / total_pages) * 80)
                 update_job(job_id, {"progress": progress})
-                time.sleep(0.6)  # Artificial delay for smoother progress updates
-        # Extraction is complete; ensure progress is set to 80%
+                print(f"Updated progress to {progress}% after processing page {i+1}")
+                time.sleep(0.6)
         update_job(job_id, {"progress": 80})
-
-        # Now perform AI refinement (this phase will jump progress from 80% to 100% when done)
+        print("Extraction complete, starting refinement...")
         refined_text = prepare_text(extracted_text, refine=True)
         update_job(job_id, {"result": refined_text, "status": "complete", "progress": 100})
+        print("Refinement complete, job marked as complete.")
     except Exception as e:
+        print(f"Error in process_pdf_job: {e}")
         update_job(job_id, {"result": str(e), "status": "error"})
     finally:
         try:

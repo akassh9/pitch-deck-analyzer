@@ -227,43 +227,32 @@ def generate_memo():
     investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
     return render_template('result.html', text=investment_memo, raw_text=prepared_text)
 
-@app.route('/validate_selection', methods=['POST'])
+@app.route('/api/validate-selection', methods=['POST'])
 def validate_selection():
     data = request.get_json()
     selected_text = data.get("selected_text", "")
     if not selected_text:
-        return jsonify({"error": "No text selected."}), 400
+        return api_response(error="No text selected", status_code=400)
+    
     query = "validate: " + selected_text
     results = google_custom_search(query, Config.GOOGLE_API_KEY, Config.GOOGLE_CSE_ID)
-    validation_html = '''
-    <div class="validation-container p-4 bg-gray-900 rounded-lg shadow-lg">
-      <h3 class="text-xl font-bold mb-4 text-blue-300">Validation Results</h3>
-    '''
-    if results:
-        for res in results:
-            validation_html += f'''
-            <div class="validation-card p-4 bg-gray-800 rounded-lg mb-2">
-              <a href="{res["link"]}" target="_blank" class="text-blue-400 font-semibold hover:underline">
-                {res["title"]}
-              </a>
-              <p class="text-gray-300 mt-1">{res["snippet"]}</p>
-            </div>
-            '''
-    else:
-        validation_html += '<p class="text-gray-300">No validation results found.</p>'
-    validation_html += '</div>'
-    return jsonify({"validation_html": validation_html})
+    
+    return api_response(data={
+        "results": results if results else []
+    })
 
 # New endpoint for checking job status (using Redis)
 @app.route('/api/status', methods=['GET'])
 def job_status():
     job_id = request.args.get('job_id')
     if not job_id:
-        return jsonify({"error": "Missing job_id parameter"}), 400
+        return api_response(error="Missing job_id parameter", status_code=400)
+        
     job = get_job(job_id)
     if not job:
-        return jsonify({"error": "Job not found"}), 404
-    return jsonify({
+        return api_response(error="Job not found", status_code=404)
+        
+    return api_response(data={
         "job_id": job_id,
         "status": job.get("status"),
         "progress": job.get("progress", 0),
@@ -273,9 +262,6 @@ def job_status():
 # Modified upload endpoint to use asynchronous processing with aggressive cleanup
 @app.route('/api/upload', methods=['POST', 'OPTIONS'])
 def upload_pdf():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
-
     try:
         if 'pdf_file' not in request.files:
             return jsonify({"error": "No file part"}), 400
@@ -316,19 +302,50 @@ def cleanup_job():
         return jsonify({"success": True})
     return jsonify({"error": "No job ID provided"}), 400
 
-@app.route('/api/generate-memo', methods=['POST', 'OPTIONS'])
+# API endpoint for memo generation
+@app.route('/api/generate-memo', methods=['POST'])
 def generate_memo_api():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
+    
     data = request.get_json()
     text = data.get('text')
     if not text:
         return jsonify({"error": "No text provided"}), 400
+        
     try:
-        memo = generate_memo(text, refine=False)
-        return jsonify({"success": True, "memo": memo})
+        memo = generate_investment_memo(text, is_prepared=False)
+        return jsonify({
+            "success": True,
+            "memo": memo
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Web endpoint for HTML rendering
+@app.route('/web/generate-memo', methods=['POST'])
+def generate_memo_web():
+    edited_text = request.form.get('edited_text')
+    if not edited_text:
+        return jsonify({"error": "No text provided"}), 400
+        
+    try:
+        prepared_text = prepare_text(edited_text, refine=True)
+        investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
+        return render_template('result.html', text=investment_memo, raw_text=prepared_text)
+    except Exception as e:
+        return render_template('error.html', error=str(e))
+
+def api_response(data=None, error=None, status_code=200):
+    response = {
+        "success": error is None,
+        "timestamp": datetime.datetime.utcnow().isoformat()
+    }
+    
+    if data is not None:
+        response["data"] = data
+    if error is not None:
+        response["error"] = error
+        
+    return jsonify(response), status_code
 
 if __name__ == '__main__':
     app.run(debug=True)

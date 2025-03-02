@@ -138,7 +138,7 @@ def refine_text(text):
             "top_a": 0.0
         }
         try:
-            response = requests.post(url, headers=headers, json=data)
+            response = requests.post(url, headers=headers, json=data, timeout=10)
             if response.status_code == 200:
                 result = response.json()
                 if "choices" in result and result["choices"]:
