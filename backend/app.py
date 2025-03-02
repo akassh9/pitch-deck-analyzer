@@ -16,6 +16,7 @@ import pytesseract
 from flask import Flask, render_template, request, jsonify, make_response
 from flask_cors import CORS
 from .utils import prepare_text, is_noise_page, needs_ocr, ocr_page
+from backend.services.investment_memo_service import generate_memo
 from .config import Config
 
 # Use configuration values from the central Config object.
@@ -315,7 +316,6 @@ def cleanup_job():
         return jsonify({"success": True})
     return jsonify({"error": "No job ID provided"}), 400
 
-# Modified /api/generate-memo endpoint to support preflight OPTIONS
 @app.route('/api/generate-memo', methods=['POST', 'OPTIONS'])
 def generate_memo_api():
     if request.method == 'OPTIONS':
@@ -324,10 +324,11 @@ def generate_memo_api():
     text = data.get('text')
     if not text:
         return jsonify({"error": "No text provided"}), 400
-    memo = generate_investment_memo(text, is_prepared=False)
-    if memo is None:
-        return jsonify({"error": "Memo generation failed"}), 500
-    return jsonify({"success": True, "memo": memo})
+    try:
+        memo = generate_memo(text, refine=False)
+        return jsonify({"success": True, "memo": memo})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
