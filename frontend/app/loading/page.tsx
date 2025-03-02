@@ -20,15 +20,16 @@ export default function LoadingPage() {
         const response = await fetch(`${apiUrl}/api/status?job_id=${job_id}`);
         if (response.ok) {
           const data = await response.json();
-          // Update progress with the value returned by the backend:
-          setProgress(data.progress);
-          if (data.status === 'complete') {
-            localStorage.setItem('extractedText', data.result);
+          // Extract the nested job data
+          const jobData = data.data;
+          setProgress(jobData.progress);
+          if (jobData.status === 'complete') {
+            localStorage.setItem('extractedText', jobData.result);
             localStorage.removeItem('job_id');
             clearInterval(checkStatusInterval);
             router.push('/edit');
           }
-          if (data.status === 'error') {
+          if (jobData.status === 'error') {
             clearInterval(checkStatusInterval);
             alert("An error occurred while processing the document.");
             router.push('/');
@@ -43,6 +44,7 @@ export default function LoadingPage() {
       clearInterval(checkStatusInterval);
     };
   }, [router, apiUrl]);
+  
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-8">

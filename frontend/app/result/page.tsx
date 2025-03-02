@@ -20,7 +20,7 @@ function extractThinkContent(text: string): { mainContent: string; thinkContent:
 
 async function validateText(text: string): Promise<string> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const response = await fetch(`${apiUrl}/validate_selection`, {
+  const response = await fetch(`${apiUrl}/api/validate-selection`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ selected_text: text }),
@@ -31,7 +31,26 @@ async function validateText(text: string): Promise<string> {
   }
 
   const data = await response.json();
-  return data.validation_html;
+  // data is expected to be in the format { success: true, timestamp: ..., data: { results: [...] } }
+  const results = data.data.results || [];
+  
+  let validationHtml = "";
+  if (results.length > 0) {
+    results.forEach(res => {
+      validationHtml += `
+        <div class="validation-card p-4 bg-gray-800 rounded-lg mb-2">
+          <a href="${res.link}" target="_blank" class="text-blue-400 font-semibold hover:underline">
+            ${res.title}
+          </a>
+          <p class="text-gray-300 mt-1">${res.snippet}</p>
+        </div>
+      `;
+    });
+  } else {
+    validationHtml = '<p class="text-gray-300">No validation results found.</p>';
+  }
+  
+  return validationHtml;
 }
 
 export default function Result() {

@@ -8,12 +8,16 @@ import requests
 import json
 import PyPDF2
 import pdfplumber
+from rq import Queue
+from redis import Redis
+from .tasks import process_pdf_task
 from pdf2image import convert_from_path
 import pytesseract
 from flask import Flask, render_template, request, jsonify, make_response
 from flask_cors import CORS
-from utils import prepare_text, is_noise_page, needs_ocr, ocr_page
-from config import Config
+from .utils import prepare_text, is_noise_page, needs_ocr, ocr_page
+from backend.services.investment_memo_service import generate_memo
+from .config import Config
 
 # Use configuration values from the central Config object.
 HF_API_KEY = Config.HF_API_KEY
@@ -21,8 +25,13 @@ GOOGLE_API_KEY = Config.GOOGLE_API_KEY
 GOOGLE_CSE_ID = Config.GOOGLE_CSE_ID
 GROQ_API_KEY = Config.GROQ_API_KEY
 
+# Configure the Redis connection (adjust host, port, and db as needed)
+redis_conn = Redis(host='localhost', port=6379, db=0)
+# Create a queue named 'pdf_jobs'
+queue = Queue('pdf_jobs', connection=redis_conn)
+
 # Import Redis job management functions
-from job_manager import create_job, update_job, get_job, delete_job
+from .job_manager import create_job, update_job, get_job, delete_job
 
 app = Flask(__name__)
 
@@ -91,53 +100,6 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
-
-# Background processing function for the uploaded PDF using Redis
-def process_pdf_job(file_path, job_id):
-    try:
-        extracted_text = ""
-        with open(file_path, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            total_pages = len(reader.pages)
-            # Process each page with an artificial delay for smoother progress updates.
-            for i in range(total_pages):
-                page = reader.pages[i]
-                page_text = page.extract_text()
-                if needs_ocr(page_text):
-                    try:
-                        with pdfplumber.open(file_path) as pdf:
-                            page_plumber = pdf.pages[i]
-                            page_text_alt = page_plumber.extract_text()
-                            if page_text_alt and len(page_text_alt.strip()) > len(page_text.strip()):
-                                page_text = page_text_alt
-                    except Exception as e:
-                        app.logger.error(f"pdfplumber error on page {i+1}: {e}")
-                    if needs_ocr(page_text):
-                        try:
-                            images = convert_from_path(file_path, dpi=300, first_page=i+1, last_page=i+1)
-                            if images:
-                                page_text = ocr_page(images[0])
-                        except Exception as e:
-                            app.logger.error(f"OCR error on page {i+1}: {e}")
-                if not is_noise_page(page_text):
-                    extracted_text += page_text + "\n"
-                # Update progress for extraction phase (scale extraction to 80% of total progress)
-                progress = int(((i + 1) / total_pages) * 80)
-                update_job(job_id, {"progress": progress})
-                time.sleep(0.6)  # <-- Artificial delay for smoother progress updates
-        # Extraction is complete; ensure progress is set to 80%
-        update_job(job_id, {"progress": 80})
-
-        # Now perform AI refinement (this phase will jump progress from 80% to 100% when done)
-        refined_text = prepare_text(extracted_text, refine=True)
-        update_job(job_id, {"result": refined_text, "status": "complete", "progress": 100})
-    except Exception as e:
-        update_job(job_id, {"result": str(e), "status": "error"})
-    finally:
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
 
 @app.route('/')
 def health_check():
@@ -265,43 +227,32 @@ def generate_memo():
     investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
     return render_template('result.html', text=investment_memo, raw_text=prepared_text)
 
-@app.route('/validate_selection', methods=['POST'])
+@app.route('/api/validate-selection', methods=['POST'])
 def validate_selection():
     data = request.get_json()
     selected_text = data.get("selected_text", "")
     if not selected_text:
-        return jsonify({"error": "No text selected."}), 400
+        return api_response(error="No text selected", status_code=400)
+    
     query = "validate: " + selected_text
     results = google_custom_search(query, Config.GOOGLE_API_KEY, Config.GOOGLE_CSE_ID)
-    validation_html = '''
-    <div class="validation-container p-4 bg-gray-900 rounded-lg shadow-lg">
-      <h3 class="text-xl font-bold mb-4 text-blue-300">Validation Results</h3>
-    '''
-    if results:
-        for res in results:
-            validation_html += f'''
-            <div class="validation-card p-4 bg-gray-800 rounded-lg mb-2">
-              <a href="{res["link"]}" target="_blank" class="text-blue-400 font-semibold hover:underline">
-                {res["title"]}
-              </a>
-              <p class="text-gray-300 mt-1">{res["snippet"]}</p>
-            </div>
-            '''
-    else:
-        validation_html += '<p class="text-gray-300">No validation results found.</p>'
-    validation_html += '</div>'
-    return jsonify({"validation_html": validation_html})
+    
+    return api_response(data={
+        "results": results if results else []
+    })
 
 # New endpoint for checking job status (using Redis)
 @app.route('/api/status', methods=['GET'])
 def job_status():
     job_id = request.args.get('job_id')
     if not job_id:
-        return jsonify({"error": "Missing job_id parameter"}), 400
+        return api_response(error="Missing job_id parameter", status_code=400)
+        
     job = get_job(job_id)
     if not job:
-        return jsonify({"error": "Job not found"}), 404
-    return jsonify({
+        return api_response(error="Job not found", status_code=404)
+        
+    return api_response(data={
         "job_id": job_id,
         "status": job.get("status"),
         "progress": job.get("progress", 0),
@@ -311,9 +262,6 @@ def job_status():
 # Modified upload endpoint to use asynchronous processing with aggressive cleanup
 @app.route('/api/upload', methods=['POST', 'OPTIONS'])
 def upload_pdf():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
-
     try:
         if 'pdf_file' not in request.files:
             return jsonify({"error": "No file part"}), 400
@@ -323,22 +271,20 @@ def upload_pdf():
         if not file.filename.endswith('.pdf'):
             return jsonify({"error": "File must be a PDF"}), 400
 
-        # Aggressive cleanup: check if a current job exists via cookie and delete it
+        # Clean up any existing job using the current_job cookie
         current_job_id = request.cookies.get('current_job')
         if current_job_id:
             delete_job(current_job_id)
 
-        # Create a new job in Redis
+        # Create a new job record (assumes create_job returns a unique job_id)
         job_id = create_job()
 
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Start background processing thread, passing the Redis-based job_id
-        thread = threading.Thread(target=process_pdf_job, args=(file_path, job_id))
-        thread.start()
+        # Enqueue the task with RQ
+        job = queue.enqueue(process_pdf_task, file_path, job_id)
 
-        # Set the current_job cookie so that the client can reference it later
         response = make_response(jsonify({"success": True, "job_id": job_id}))
         response.set_cookie("current_job", job_id)
         return response
@@ -356,19 +302,50 @@ def cleanup_job():
         return jsonify({"success": True})
     return jsonify({"error": "No job ID provided"}), 400
 
-# Modified /api/generate-memo endpoint to support preflight OPTIONS
-@app.route('/api/generate-memo', methods=['POST', 'OPTIONS'])
+# API endpoint for memo generation
+@app.route('/api/generate-memo', methods=['POST'])
 def generate_memo_api():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
+    
     data = request.get_json()
     text = data.get('text')
     if not text:
         return jsonify({"error": "No text provided"}), 400
-    memo = generate_investment_memo(text, is_prepared=False)
-    if memo is None:
-        return jsonify({"error": "Memo generation failed"}), 500
-    return jsonify({"success": True, "memo": memo})
+        
+    try:
+        memo = generate_investment_memo(text, is_prepared=False)
+        return jsonify({
+            "success": True,
+            "memo": memo
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Web endpoint for HTML rendering
+@app.route('/web/generate-memo', methods=['POST'])
+def generate_memo_web():
+    edited_text = request.form.get('edited_text')
+    if not edited_text:
+        return jsonify({"error": "No text provided"}), 400
+        
+    try:
+        prepared_text = prepare_text(edited_text, refine=True)
+        investment_memo = generate_investment_memo(prepared_text, is_prepared=True)
+        return render_template('result.html', text=investment_memo, raw_text=prepared_text)
+    except Exception as e:
+        return render_template('error.html', error=str(e))
+
+def api_response(data=None, error=None, status_code=200):
+    response = {
+        "success": error is None,
+        "timestamp": datetime.datetime.utcnow().isoformat()
+    }
+    
+    if data is not None:
+        response["data"] = data
+    if error is not None:
+        response["error"] = error
+        
+    return jsonify(response), status_code
 
 if __name__ == '__main__':
     app.run(debug=True)
