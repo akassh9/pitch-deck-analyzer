@@ -1,7 +1,3 @@
-Below is an architectural and code-level documentation designed to help new developers onboard onto the **Pitch Deck Analyzer** application. This document explains the core folder structure, what each file does, the technology stack, and how the request flow works from PDF upload to generating/validating an investment memo.
-
----
-
 # Table of Contents
 1. [Overview & Goals](#overview--goals)  
 2. [Technology Stack](#technology-stack)  
