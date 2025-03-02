@@ -8,12 +8,15 @@ import requests
 import json
 import PyPDF2
 import pdfplumber
+from rq import Queue
+from redis import Redis
+from .tasks import process_pdf_task
 from pdf2image import convert_from_path
 import pytesseract
 from flask import Flask, render_template, request, jsonify, make_response
 from flask_cors import CORS
-from utils import prepare_text, is_noise_page, needs_ocr, ocr_page
-from config import Config
+from .utils import prepare_text, is_noise_page, needs_ocr, ocr_page
+from .config import Config
 
 # Use configuration values from the central Config object.
 HF_API_KEY = Config.HF_API_KEY
@@ -21,8 +24,13 @@ GOOGLE_API_KEY = Config.GOOGLE_API_KEY
 GOOGLE_CSE_ID = Config.GOOGLE_CSE_ID
 GROQ_API_KEY = Config.GROQ_API_KEY
 
+# Configure the Redis connection (adjust host, port, and db as needed)
+redis_conn = Redis(host='localhost', port=6379, db=0)
+# Create a queue named 'pdf_jobs'
+queue = Queue('pdf_jobs', connection=redis_conn)
+
 # Import Redis job management functions
-from job_manager import create_job, update_job, get_job, delete_job
+from .job_manager import create_job, update_job, get_job, delete_job
 
 app = Flask(__name__)
 
@@ -91,53 +99,6 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB max file size
-
-# Background processing function for the uploaded PDF using Redis
-def process_pdf_job(file_path, job_id):
-    try:
-        extracted_text = ""
-        with open(file_path, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            total_pages = len(reader.pages)
-            # Process each page with an artificial delay for smoother progress updates.
-            for i in range(total_pages):
-                page = reader.pages[i]
-                page_text = page.extract_text()
-                if needs_ocr(page_text):
-                    try:
-                        with pdfplumber.open(file_path) as pdf:
-                            page_plumber = pdf.pages[i]
-                            page_text_alt = page_plumber.extract_text()
-                            if page_text_alt and len(page_text_alt.strip()) > len(page_text.strip()):
-                                page_text = page_text_alt
-                    except Exception as e:
-                        app.logger.error(f"pdfplumber error on page {i+1}: {e}")
-                    if needs_ocr(page_text):
-                        try:
-                            images = convert_from_path(file_path, dpi=300, first_page=i+1, last_page=i+1)
-                            if images:
-                                page_text = ocr_page(images[0])
-                        except Exception as e:
-                            app.logger.error(f"OCR error on page {i+1}: {e}")
-                if not is_noise_page(page_text):
-                    extracted_text += page_text + "\n"
-                # Update progress for extraction phase (scale extraction to 80% of total progress)
-                progress = int(((i + 1) / total_pages) * 80)
-                update_job(job_id, {"progress": progress})
-                time.sleep(0.6)  # <-- Artificial delay for smoother progress updates
-        # Extraction is complete; ensure progress is set to 80%
-        update_job(job_id, {"progress": 80})
-
-        # Now perform AI refinement (this phase will jump progress from 80% to 100% when done)
-        refined_text = prepare_text(extracted_text, refine=True)
-        update_job(job_id, {"result": refined_text, "status": "complete", "progress": 100})
-    except Exception as e:
-        update_job(job_id, {"result": str(e), "status": "error"})
-    finally:
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
 
 @app.route('/')
 def health_check():
@@ -323,22 +284,20 @@ def upload_pdf():
         if not file.filename.endswith('.pdf'):
             return jsonify({"error": "File must be a PDF"}), 400
 
-        # Aggressive cleanup: check if a current job exists via cookie and delete it
+        # Clean up any existing job using the current_job cookie
         current_job_id = request.cookies.get('current_job')
         if current_job_id:
             delete_job(current_job_id)
 
-        # Create a new job in Redis
+        # Create a new job record (assumes create_job returns a unique job_id)
         job_id = create_job()
 
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Start background processing thread, passing the Redis-based job_id
-        thread = threading.Thread(target=process_pdf_job, args=(file_path, job_id))
-        thread.start()
+        # Enqueue the task with RQ
+        job = queue.enqueue(process_pdf_task, file_path, job_id)
 
-        # Set the current_job cookie so that the client can reference it later
         response = make_response(jsonify({"success": True, "job_id": job_id}))
         response.set_cookie("current_job", job_id)
         return response

@@ -5,7 +5,7 @@ import requests
 import pytesseract
 from pdf2image import convert_from_path
 import pdfplumber
-from config import Config
+from .config import Config
 
 DEBUG_LOGGING = Config.DEBUG_LOGGING
 
