@@ -15,16 +15,50 @@ def _call_groq_api(input_text: str) -> str:
         "messages": [
             {
                 "role": "system",
-                "content": "You are an expert venture capital analyst specializing in creating detailed investment memos."
+                "content": """You are an expert venture capital analyst specializing in creating detailed investment memos. 
+                Maintain a professional, objective tone and be transparent about any information gaps in the pitch deck.
+                Do not make assumptions or fill in missing information - instead, highlight what information would be needed for a complete analysis."""
             },
             {
                 "role": "user",
-                "content": (
-                    "Generate a detailed investment memo based on the following pitch deck content. "
-                    "Your memo should include these sections:\n\n"
-                    "1. Executive Summary\n2. Market Opportunity\n3. Competitive Landscape\n4. Financial Highlights\n\n"
-                    f"Pitch Deck Content: {input_text}"
-                )
+                "content": f"""Generate a structured investment memo based on the following pitch deck content.
+                For each section, if critical information is missing from the pitch deck, explicitly note the gaps 
+                and what additional information would be needed for a thorough analysis.
+
+                # Investment Memo: [Company Name]
+
+                ## 1. Executive Summary
+                - Company overview and core value proposition
+                - Current stage and traction
+                - Investment ask (if specified)
+
+                ## 2. Market Opportunity
+                - Market size (if provided)
+                - Target customer segments
+                - Market trends (if discussed)
+
+                ## 3. Competitive Landscape
+                - Known competitors
+                - Stated differentiators
+                - Competitive advantages (if demonstrated)
+
+                ## 4. Financial Highlights
+                - Current financials (if provided)
+                - Projections (if included)
+                - Key metrics and unit economics (if available)
+
+                ## 5. Investment Thesis
+                - Demonstrated strengths
+                - Growth potential based on available information
+                - Key areas requiring further due diligence
+
+                ## 6. Risks and Information Gaps
+                - Identified risks from available information
+                - Critical missing information
+                - Key questions for follow-up
+
+                Analyze this pitch deck content, clearly indicating where information is missing or incomplete:
+                {input_text}"""
             }
         ],
         "temperature": 0.7,

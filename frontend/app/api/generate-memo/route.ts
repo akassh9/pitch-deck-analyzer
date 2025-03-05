@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
+import { API_CONFIG } from '../../../lib/config';
 
 export async function POST(request: Request) {
     try {
         const data = await request.json();
         const text = data.text;
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-        const backendResponse = await fetch(`${apiUrl}/api/generate-memo`, {
+        const backendResponse = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generateMemo}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

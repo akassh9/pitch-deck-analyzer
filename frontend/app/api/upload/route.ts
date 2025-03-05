@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { API_CONFIG } from '../../../lib/config';
 
 export async function POST(request: Request) {
   try {
@@ -9,13 +10,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    console.log('Attempting to upload to:', `${apiUrl}/api/upload`);
+    console.log('Attempting to upload to:', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.upload}`);
 
     const newFormData = new FormData();
-    newFormData.append('pdf_file', file);
+    newFormData.append('file', file);
 
-    const backendResponse = await fetch(`${apiUrl}/api/upload`, {
+    const backendResponse = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.upload}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',

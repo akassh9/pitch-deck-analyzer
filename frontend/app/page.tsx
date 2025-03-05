@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '../lib/api-client';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,30 +21,15 @@ export default function Page() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!file) return;
-
+  
     setIsLoading(true);
     
-    const formData = new FormData();
-    formData.append('pdf_file', file);
-
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/upload`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
-      const data = await response.json();
-      if (data.success) {
-        localStorage.setItem('job_id', data.job_id);
-        router.push('/loading');
-      } else {
-        throw new Error(data.error || 'Upload failed');
-      }
+      const result = await apiClient.uploadPdf(file);
+      localStorage.setItem('job_id', result.job_id);
+      // Set nextRoute to edit for deck extraction flow:
+      localStorage.setItem('nextRoute', '/edit');
+      router.push('/loading');
     } catch (error) {
       console.error('Upload error:', error);
       alert(error instanceof Error ? error.message : 'Upload failed');
@@ -52,7 +38,7 @@ export default function Page() {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="absolute bottom-20 right-20">

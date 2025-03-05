@@ -128,7 +128,7 @@ def refine_text(text):
                     "content": f"{chunk}"
                 }
             ],
-            "temperature": 0.5,
+            "temperature": 0.1,
             "max_tokens": 130000,
             "top_p": 1.0,
             "top_k": 0,

@@ -1,3 +1,5 @@
+// frontend/app/layout.tsx
+
 import type { Metadata } from 'next';
 import { Roboto as FontSans } from 'next/font/google';
 import { Young_Serif as FontSerif } from 'next/font/google';
@@ -12,7 +14,7 @@ const fontSans = FontSans({
 });
 
 const fontSerif = FontSerif({
-  weight: '400', // Added required weight - Young Serif only comes in 400 weight
+  weight: '400',
   subsets: ['latin'],
   variable: '--font-serif',
   display: 'swap',
@@ -23,16 +25,19 @@ export const metadata: Metadata = {
   description: 'Grounded in Insights, Driven by Growth',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <body className={`${fontSans.variable} ${fontSerif.variable} font-sans antialiased`}>
         <Header />
-        <main className="pt-20">
+        {/*
+          Add a container that wraps all pages:
+          - max-w-4xl: Limits width to a comfortable reading size
+          - mx-auto: Centers horizontally
+          - px-6, py-8: Adds uniform horizontal & vertical padding
+          - space-y-8: Adds vertical spacing between any stacked elements inside
+        */}
+        <main className="max-w-8xl mx-auto px-8 py-8 space-y-8 pt-24">
           {children}
         </main>
       </body>

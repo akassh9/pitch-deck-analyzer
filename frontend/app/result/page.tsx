@@ -1,187 +1,145 @@
-'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+'use client'
 
-function extractThinkContent(text: string): { mainContent: string; thinkContent: string | null } {
-  if (!text) {
-    return { mainContent: '', thinkContent: null };
-  }
-  const pattern = /<think>([\s\S]+?)<\/think>/i;
-  const match = text.match(pattern);
-  if (match) {
-    const thinkContent = match[1].trim();
-    const mainContent = text.replace(pattern, '').trim();
-    return { mainContent, thinkContent };
-  }
-  return { mainContent: text, thinkContent: null };
-}
+import { useState, useEffect } from "react"
+import { ArrowLeft, ChevronDown, ChevronUp, Send } from "lucide-react"
+import Link from "next/link"
+import { apiClient } from "../../lib/api-client"
+import { ValidationResults } from "../../components/ValidationResults"
+import ReactMarkdown from 'react-markdown'
 
-async function validateText(text: string): Promise<string> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const response = await fetch(`${apiUrl}/api/validate-selection`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ selected_text: text }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to validate text');
-  }
-
-  const data = await response.json();
-  // data is expected to be in the format { success: true, timestamp: ..., data: { results: [...] } }
-  const results = data.data.results || [];
-  
-  let validationHtml = "";
-  if (results.length > 0) {
-    results.forEach(res => {
-      validationHtml += `
-        <div class="validation-card p-4 bg-gray-800 rounded-lg mb-2">
-          <a href="${res.link}" target="_blank" class="text-blue-400 font-semibold hover:underline">
-            ${res.title}
-          </a>
-          <p class="text-gray-300 mt-1">${res.snippet}</p>
-        </div>
-      `;
-    });
-  } else {
-    validationHtml = '<p class="text-gray-300">No validation results found.</p>';
+export default function ResultsPage() {
+  const [generatedMemo, setGeneratedMemo] = useState("")
+  interface ValidationResult {
+    title: string;
+    snippet: string;
+    link: string;
   }
   
-  return validationHtml;
-}
-
-export default function Result() {
-  const [memoParam, setMemoParam] = useState('');
+  const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);  
+  const [modelReasoning, setModelReasoning] = useState("")
+  const [isValidationOpen, setIsValidationOpen] = useState(false)
+  const [isReasoningOpen, setIsReasoningOpen] = useState(false)
 
   useEffect(() => {
-    // Get memo from localStorage
-    const memo = localStorage.getItem('memo');
-    if (memo) {
-      setMemoParam(memo);
-      // Clean up localStorage after reading
-      localStorage.removeItem('memo');
+    async function processText() {
+      let memo = localStorage.getItem("memo") || ""
+      
+      // If the memo contains <think> tags, extract them
+      const thinkRegex = /<think>([\s\S]*?)<\/think>/i
+      const match = memo.match(thinkRegex)
+      if (match) {
+        const reasoning = match[1].trim()
+        // Remove the <think> block from the memo
+        const cleanedMemo = memo.replace(thinkRegex, "").trim()
+
+        setGeneratedMemo(cleanedMemo)
+        setModelReasoning(reasoning)
+      } else {
+        setGeneratedMemo(memo)
+      }
     }
-  }, []);
 
-  // Separate <think> content from the memo
-  const { mainContent: memoMain, thinkContent: memoThink } = extractThinkContent(memoParam);
+    processText()
+  }, [])
 
-  // State variables
-  const [validationHtml, setValidationHtml] = useState('');
-  const [isValidationExpanded, setIsValidationExpanded] = useState(false);
-  const [isMemoExpanded, setIsMemoExpanded] = useState(true); // Memo starts expanded
-  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
-
-  async function handleValidateClick() {
-    const selection = window.getSelection()?.toString() || '';
+  const handleValidateClick = async () => {
+    const selection = window.getSelection()?.toString() || "";
     if (!selection) {
-      console.warn('No text selected.');
+      alert("Please select some text to validate.");
       return;
     }
     try {
-      const html = await validateText(selection);
-      setValidationHtml(html);
-      setIsValidationExpanded(true);
+      const results = await apiClient.validateSelection(selection);
+      setValidationResults(results);
+      setIsValidationOpen(true);
     } catch (error) {
-      console.error('Validation error:', error);
-      setValidationHtml('<p>Failed to load validation results.</p>');
+      console.error("Validation error:", error);
+      alert("Validation failed. Please try again.");
     }
   }
+  
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8">
-      <div className="max-w-4xl mx-auto">
-
-        {/* Top Bar */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Investment Memo</h1>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg"
-          >
-            Analyze Another Deck
-          </Link>
+    <div className="h-screen bg-background text-foreground flex flex-col p-8">
+      <div className="w-3/4 mx-auto flex flex-col mt-18">
+        {/* Top bar with Back link on the left and two buttons on the right */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="space-y-4">
+            <Link
+              href="/edit"
+              className="text-primary hover:text-primary-foreground transition-colors flex items-center"
+            >
+              <ArrowLeft className="mr-2" size={20} />
+              Back to Edit Text
+            </Link>
+            <h1 className="text-4xl font-serif">Analysis Results</h1>
+          </div>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleValidateClick}
+              className="bg-primary text-primary-foreground rounded-lg px-6 py-2 hover:bg-accent transition-colors flex items-center"
+            >
+              <Send className="mr-2" size={20} />
+              Validate Selection
+            </button>
+            <Link
+              href="/"
+              className="bg-primary text-primary-foreground rounded-lg px-6 py-2 hover:bg-accent transition-colors flex items-center"
+            >
+              <Send className="mr-2" size={20} />
+              Analyze New Pitch Deck
+            </Link>
+          </div>
         </div>
 
-        {/* Validate Selection Button */}
-        <button
-          onClick={handleValidateClick}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg mt-4"
-        >
-          Validate Selection
-        </button>
-
-        {/* Validation Results Box */}
-        {validationHtml && (
-          <div className="mt-4 border border-gray-700 rounded-lg">
+        {/* Validation Results box */}
+          <div className="bg-secondary p-6 rounded-lg mb-6 border border-border">
             <button
-              onClick={() => setIsValidationExpanded(!isValidationExpanded)}
-              className="w-full p-4 text-left bg-gray-800 hover:bg-gray-700 rounded-t-lg flex justify-between items-center"
+              onClick={() => setIsValidationOpen(!isValidationOpen)}
+              className="flex items-center justify-between w-full text-left"
             >
-              <span className="font-semibold">Validation Results</span>
-              <span>{isValidationExpanded ? '▼' : '▶'}</span>
+              <h2 className="text-2xl font-serif">Validation Results</h2>
+              {isValidationOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
             </button>
-            {isValidationExpanded && (
-              <div
-                className="p-4 bg-gray-900 rounded-b-lg"
-                dangerouslySetInnerHTML={{ __html: validationHtml }}
-              />
+
+            {isValidationOpen && (
+              <div className="mt-4">
+                <ValidationResults results={validationResults} />
+              </div>
             )}
           </div>
-        )}
 
-        {/* Investment Memo Box (Collapsible) */}
-        <div className="mt-6 border border-gray-700 rounded-lg">
+
+        {/* Generated Memo box */}
+        <div className="bg-secondary p-6 rounded-lg mb-6">
+          <h2 className="text-2xl font-serif mb-4">Generated Memo</h2>
+          <div className="prose prose-slate dark:prose-invert max-w-none 
+            prose-headings:font-serif 
+            prose-p:font-sans 
+            prose-li:font-sans">
+            <ReactMarkdown>{generatedMemo}</ReactMarkdown>
+          </div>
+        </div>
+
+        {/* Model Reasoning box */}
+        <div className="bg-secondary p-6 rounded-lg mb-6">
           <button
-            onClick={() => setIsMemoExpanded(!isMemoExpanded)}
-            className="w-full p-4 text-left bg-gray-800 hover:bg-gray-700 rounded-t-lg flex justify-between items-center"
+            onClick={() => setIsReasoningOpen(!isReasoningOpen)}
+            className="flex items-center justify-between w-full text-left"
           >
-            <span className="font-semibold">Investment Memo Text</span>
-            <span>{isMemoExpanded ? '▼' : '▶'}</span>
+            <h2 className="text-2xl font-serif">Model Reasoning</h2>
+            {isReasoningOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
           </button>
-          {isMemoExpanded && (
-            <div
-              className="p-4 bg-gray-900 rounded-b-lg"
-              style={{
-                userSelect: 'text',
-                WebkitUserSelect: 'text',
-                MozUserSelect: 'text',
-                msUserSelect: 'text',
-              }}
-            >
-              <div className="prose prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {memoMain}
-                </ReactMarkdown>
-              </div>
+          {isReasoningOpen && (
+            <div className="prose prose-slate dark:prose-invert max-w-none mt-4
+              prose-headings:font-serif 
+              prose-p:font-sans 
+              prose-li:font-sans">
+              <ReactMarkdown>{modelReasoning}</ReactMarkdown>
             </div>
           )}
         </div>
-
-        {/* Model Reasoning Box */}
-        {memoThink && (
-          <div className="mt-4 border border-gray-700 rounded-lg">
-            <button
-              onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
-              className="w-full p-4 text-left bg-gray-800 hover:bg-gray-700 rounded-t-lg flex justify-between items-center"
-            >
-              <span className="font-semibold">Model Reasoning</span>
-              <span>{isThinkingExpanded ? '▼' : '▶'}</span>
-            </button>
-            {isThinkingExpanded && (
-              <div className="p-4 bg-gray-900 rounded-b-lg">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {memoThink}
-                </ReactMarkdown>
-              </div>
-            )}
-          </div>
-        )}
-
       </div>
     </div>
-  );
+  )
 }

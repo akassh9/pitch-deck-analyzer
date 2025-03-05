@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
+import { API_CONFIG } from '../../../lib/config';
 
 export async function POST(request: Request) {
     try {
-        const { selected_text } = await request.json();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-        const backendResponse = await fetch(`${apiUrl}/api/validate-selection`, {
+        const { text } = await request.json();
+        const backendResponse = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.validateSelection}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ selected_text }),
+            body: JSON.stringify({ text }),
         });
+
         
         if (!backendResponse.ok) {
             const errorText = await backendResponse.text();

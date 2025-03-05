@@ -1,0 +1,50 @@
+2025-03-03 10:55:26,303 - backend.app - INFO - Starting Pitch Deck Analyzer API
+2025-03-03 10:55:26,304 - backend.app - INFO - CORS enabled
+2025-03-03 10:55:26,304 - backend.app - INFO - Registered API blueprints
+2025-03-03 10:55:26,305 - backend.app - INFO - Application configuration complete
+2025-03-03 10:55:26,309 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-03-03 10:55:26,309 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-03 10:56:41,266 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-03 10:56:41,308 - backend.api.pdf_controller - INFO - Saved uploaded PDF to uploads/04fd20c6-39c7-47cc-ac63-e04492d65313.pdf with job ID 04fd20c6-39c7-47cc-ac63-e04492d65313
+2025-03-03 10:56:41,320 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 10:56:41] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-03 10:56:42,722 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 10:56:42] "GET /api/status?job_id=04fd20c6-39c7-47cc-ac63-e04492d65313 HTTP/1.1" 200 -
+2025-03-03 10:59:08,506 - backend.app - INFO - Starting Pitch Deck Analyzer API
+2025-03-03 10:59:08,506 - backend.app - INFO - CORS enabled
+2025-03-03 10:59:08,507 - backend.app - INFO - Registered API blueprints
+2025-03-03 10:59:08,507 - backend.app - INFO - Application configuration complete
+2025-03-03 10:59:08,510 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-03-03 10:59:08,510 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-03 11:02:40,293 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-03 11:02:40,321 - backend.api.pdf_controller - INFO - Saved uploaded PDF to uploads/cdfc73db-9708-4080-80ab-cd89bb5604ea.pdf with job ID cdfc73db-9708-4080-80ab-cd89bb5604ea
+2025-03-03 11:02:40,332 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:02:40] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-03 11:02:41,659 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:02:41] "GET /api/status?job_id=cdfc73db-9708-4080-80ab-cd89bb5604ea HTTP/1.1" 200 -
+2025-03-03 11:03:46,535 - backend.api.pdf_controller - INFO - Saved uploaded PDF to uploads/9514b2b1-b15b-48fd-b220-146aec7ff95a.pdf with job ID 9514b2b1-b15b-48fd-b220-146aec7ff95a
+2025-03-03 11:03:46,548 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:03:46] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-03 11:03:47,640 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:03:47] "GET /api/status?job_id=9514b2b1-b15b-48fd-b220-146aec7ff95a HTTP/1.1" 200 -
+2025-03-03 11:07:36,398 - backend.app - INFO - Starting Pitch Deck Analyzer API
+2025-03-03 11:07:36,398 - backend.app - INFO - CORS enabled
+2025-03-03 11:07:36,399 - backend.app - INFO - Registered API blueprints
+2025-03-03 11:07:36,399 - backend.app - INFO - Application configuration complete
+2025-03-03 11:07:36,399 - backend.app - INFO - Starting Pitch Deck Analyzer API
+2025-03-03 11:07:36,399 - backend.app - INFO - CORS enabled
+2025-03-03 11:07:36,400 - backend.app - INFO - Registered API blueprints
+2025-03-03 11:07:36,400 - backend.app - INFO - Application configuration complete
+2025-03-03 11:07:36,406 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-03-03 11:07:36,406 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-03 11:08:20,260 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-03 11:08:20,278 - backend.api.pdf_controller - INFO - Saved uploaded PDF to uploads/02c80a48-b01e-4906-b8f6-3f6670bdc866.pdf with job ID 02c80a48-b01e-4906-b8f6-3f6670bdc866
+2025-03-03 11:08:20,288 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:08:20] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-03 11:08:21,584 - werkzeug - INFO - 127.0.0.1 - - [03/Mar/2025 11:08:21] "GET /api/status?job_id=02c80a48-b01e-4906-b8f6-3f6670bdc866 HTTP/1.1" 200 -
+2025-03-03 11:22:51,566 - __main__ - INFO - Starting Simple Pitch Deck Analyzer API
+2025-03-03 11:22:51,624 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.1.5:5001
+2025-03-03 11:22:51,624 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-03 11:22:51,625 - werkzeug - INFO -  * Restarting with stat
+2025-03-03 11:22:51,716 - __main__ - INFO - Starting Simple Pitch Deck Analyzer API
+2025-03-03 11:22:51,732 - werkzeug - WARNING -  * Debugger is active!
+2025-03-03 11:22:51,739 - werkzeug - INFO -  * Debugger PIN: 108-713-146

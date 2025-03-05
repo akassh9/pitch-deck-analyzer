@@ -1,3 +1,5 @@
+import React from 'react';
+
 interface ValidationResult {
   title: string;
   snippet: string;
@@ -10,24 +12,31 @@ interface ValidationProps {
 
 export const ValidationResults: React.FC<ValidationProps> = ({ results }) => {
   return (
-    <div className="validation-container p-4 bg-gray-900 rounded-lg shadow-lg">
-      <h3 className="text-xl font-bold mb-4 text-blue-300">Validation Results</h3>
+    <div className="space-y-4">
       {results.length > 0 ? (
         results.map((result, index) => (
-          <div key={index} className="validation-card p-4 bg-gray-800 rounded-lg mb-2">
+          <div
+            key={index}
+            className="p-4 bg-background border border-border rounded-md shadow-sm 
+                       hover:bg-background/80 transition-colors"
+          >
             <a
               href={result.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 font-semibold hover:underline"
+              className="text-primary font-semibold hover:underline"
             >
               {result.title}
             </a>
-            <p className="text-gray-300 mt-1">{result.snippet}</p>
+            <p className="mt-1 text-sm text-secondary-foreground/80">
+              {result.snippet}
+            </p>
           </div>
         ))
       ) : (
-        <p className="text-gray-300">No validation results found.</p>
+        <p className="text-secondary-foreground/80">
+          No validation results found.
+        </p>
       )}
     </div>
   );

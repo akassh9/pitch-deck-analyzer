@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '../../lib/api-client';
 
 export default function LoadingPage() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const job_id = localStorage.getItem('job_id');
@@ -17,23 +17,32 @@ export default function LoadingPage() {
     
     const checkStatusInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${apiUrl}/api/status?job_id=${job_id}`);
-        if (response.ok) {
-          const data = await response.json();
-          // Extract the nested job data
-          const jobData = data.data;
-          setProgress(jobData.progress);
-          if (jobData.status === 'complete') {
-            localStorage.setItem('extractedText', jobData.result);
-            localStorage.removeItem('job_id');
-            clearInterval(checkStatusInterval);
-            router.push('/edit');
+        const jobData = await apiClient.getJobStatus(job_id);
+        
+        setProgress(jobData.progress || 0);
+        
+        if (jobData.status === 'completed') {
+          // Read the next route flag; default to '/edit' if not set
+          const nextRoute = localStorage.getItem('nextRoute') || '/edit';
+          
+          // If the next route is '/result', store the memo with key 'memo'
+          if (nextRoute === '/result') {
+            localStorage.setItem('memo', jobData.result || '');
+          } else {
+            localStorage.setItem('extractedText', jobData.result || '');
           }
-          if (jobData.status === 'error') {
-            clearInterval(checkStatusInterval);
-            alert("An error occurred while processing the document.");
-            router.push('/');
-          }
+          
+          localStorage.removeItem('job_id');
+          localStorage.removeItem('nextRoute');
+          clearInterval(checkStatusInterval);
+          router.push(nextRoute);
+        }        
+        
+        
+        if (jobData.status === 'failed') {
+          clearInterval(checkStatusInterval);
+          alert(`An error occurred while processing the document: ${jobData.error || 'Unknown error'}`);
+          router.push('/');
         }
       } catch (error) {
         console.error('Error fetching job status:', error);
@@ -43,7 +52,7 @@ export default function LoadingPage() {
     return () => {
       clearInterval(checkStatusInterval);
     };
-  }, [router, apiUrl]);
+  }, [router]);
   
 
   return (
