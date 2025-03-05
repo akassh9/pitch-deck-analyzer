@@ -7,6 +7,7 @@ import logging
 import requests
 from ..utils.error_handling import ProcessingError
 from ..utils.text_processing import prepare_text
+from ..utils.memo_templates import TEMPLATES
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,14 @@ class MemoService:
         self.config = config
         logger.info("Initialized MemoService")
     
-    def generate_memo(self, text, refine=False):
+    def generate_memo(self, text, refine=False, template_key="default"):
         """
         Generate an investment memo from the provided text.
         
         Args:
             text (str): The pitch deck text
             refine (bool): Whether the text is already refined
+            template_key (str): The template to use for memo generation
             
         Returns:
             str: The generated investment memo
@@ -35,31 +37,35 @@ class MemoService:
         try:
             # Preprocess the text if needed
             input_text = text if refine else prepare_text(text, refine=False)
-            logger.info(f"Generating memo from {len(input_text)} chars of text")
+            logger.info(f"Generating memo from {len(input_text)} chars of text using template '{template_key}'")
+            
+            # Get template
+            template = TEMPLATES.get(template_key, TEMPLATES["default"])
             
             # Try with primary service (Groq)
             if self.config.GROQ_API_KEY:
                 try:
                     logger.info("Attempting to generate memo with Groq API")
-                    return self._call_groq_api(input_text)
+                    return self._call_groq_api(input_text, template)
                 except Exception as e:
                     logger.warning(f"Groq API failed: {str(e)}, falling back to OpenRouter")
             else:
                 logger.info("No Groq API key configured, using OpenRouter")
             
             # Fallback to secondary service
-            return self._call_openrouter_api(input_text)
+            return self._call_openrouter_api(input_text, template)
                 
         except Exception as e:
             logger.error(f"Failed to generate memo: {str(e)}", exc_info=True)
             raise ProcessingError(f"Failed to generate memo: {str(e)}")
     
-    def _call_groq_api(self, input_text):
+    def _call_groq_api(self, input_text, template):
         """
         Call the Groq API to generate a memo.
         
         Args:
             input_text (str): The preprocessed text
+            template (dict): The template to use
             
         Returns:
             str: The generated memo
@@ -73,6 +79,9 @@ class MemoService:
             "Content-Type": "application/json"
         }
         
+        # Format sections for prompt
+        sections = "\n".join(f"{i+1}. {section}" for i, section in enumerate(template["sections_order"]))
+        
         data = {
             "model": "deepseek-r1-distill-llama-70b",
             "messages": [
@@ -83,10 +92,8 @@ class MemoService:
                 {
                     "role": "user",
                     "content": (
-                        "Generate a detailed investment memo based on the following pitch deck content. "
-                        "Your memo should include these sections:\n\n"
-                        "1. Executive Summary\n2. Market Opportunity\n3. Competitive Landscape\n"
-                        "4. Financial Highlights\n5. Investment Thesis\n6. Risks and Mitigations\n\n"
+                        f"{template['instructions']}\n\n"
+                        f"Please structure the memo with the following sections:\n{sections}\n\n"
                         f"Pitch Deck Content: {input_text}"
                     )
                 }
@@ -119,12 +126,13 @@ class MemoService:
         logger.error(error_message)
         raise Exception(error_message)
     
-    def _call_openrouter_api(self, input_text):
+    def _call_openrouter_api(self, input_text, template):
         """
         Call the OpenRouter API to generate a memo.
         
         Args:
             input_text (str): The preprocessed text
+            template (dict): The template to use
             
         Returns:
             str: The generated memo
@@ -138,6 +146,9 @@ class MemoService:
             "Content-Type": "application/json",
         }
         
+        # Format sections for prompt
+        sections = "\n".join(f"{i+1}. {section}" for i, section in enumerate(template["sections_order"]))
+        
         data = {
             "model": "deepseek/deepseek-r1:free",
             "messages": [
@@ -148,10 +159,8 @@ class MemoService:
                 {
                     "role": "user",
                     "content": (
-                        "Generate a detailed investment memo based on the following pitch deck content. "
-                        "Your memo should include these sections:\n\n"
-                        "1. Executive Summary\n2. Market Opportunity\n3. Competitive Landscape\n"
-                        "4. Financial Highlights\n5. Investment Thesis\n6. Risks and Mitigations\n\n"
+                        f"{template['instructions']}\n\n"
+                        f"Please structure the memo with the following sections:\n{sections}\n\n"
                         f"Pitch Deck Content: {input_text}"
                     )
                 }

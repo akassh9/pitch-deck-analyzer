@@ -49,16 +49,17 @@ def process_pdf_task(file_path, job_id):
         update_job(job_id, {"status": "failed", "error": str(e)})
         raise
 
-def generate_memo_task(text, job_id):
+def generate_memo_task(text, job_id, template_key="default"):
     """
     Generate an investment memo in the background.
     
     Args:
         text (str): The text to generate a memo from
         job_id (str): ID of the job to update progress
+        template_key (str): The template to use for memo generation (default: "default")
     """
     try:
-        logger.info(f"Starting memo generation task for job {job_id}")
+        logger.info(f"Starting memo generation task for job {job_id} with template '{template_key}'")
         
         # Update job status
         update_job(job_id, {"status": "processing", "progress": 10})
@@ -66,8 +67,8 @@ def generate_memo_task(text, job_id):
         # Get the memo service
         memo_service = get_memo_service()
         
-        # Generate the memo
-        memo = memo_service.generate_memo(text)
+        # Generate the memo with template
+        memo = memo_service.generate_memo(text, template_key=template_key)
         
         # Update job with result
         update_job(job_id, {

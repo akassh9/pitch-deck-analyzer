@@ -1,0 +1,9 @@
+Metadata-Version: 2.2
+Name: pitch-deck-analyzer-backend
+Version: 0.1.0
+Requires-Dist: flask
+Requires-Dist: redis
+Requires-Dist: rq
+Requires-Dist: requests
+Requires-Dist: pytest
+Dynamic: requires-dist

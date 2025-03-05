@@ -1,0 +1,105 @@
+openapi: 3.0.0
+info:
+  title: Pitch Deck Analyzer API
+  version: 1.0.0
+  description: API for analyzing pitch decks and generating investment memos
+
+paths:
+  /api/generate-memo:
+    post:
+      summary: Generate an investment memo from pitch deck text
+      description: |
+        Analyzes the provided pitch deck text and generates a structured investment memo.
+        Supports different templates for various investment stages.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: The pitch deck text to analyze
+                template:
+                  type: string
+                  description: The template to use for memo generation
+                  enum: [default, seed, seriesA, growth]
+                  default: default
+      responses:
+        '202':
+          description: Memo generation job created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  job_id:
+                    type: string
+                    example: "unique-job-id"
+                  status:
+                    type: string
+                    enum: [processing]
+                    example: "processing"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Missing 'text' field in request"
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Failed to generate memo"
+                      code:
+                        type: string
+                        example: "INTERNAL_ERROR"
+
+components:
+  schemas:
+    Template:
+      type: object
+      required:
+        - sections_order
+        - instructions
+      properties:
+        sections_order:
+          type: array
+          items:
+            type: string
+          description: Ordered list of sections to include in the memo
+          example: ["Executive Summary", "Market Opportunity", "Competitive Landscape"]
+        instructions:
+          type: string
+          description: Instructions for the LLM on how to generate the memo
+ 

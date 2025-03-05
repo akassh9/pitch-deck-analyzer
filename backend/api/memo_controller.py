@@ -27,14 +27,17 @@ def generate_memo_api():
         if not text:
             raise ValidationError("Missing 'text' field in request")
             
+        # Get the optional template parameter (default to "default")
+        template_key = data.get('template', 'default')
+        
         # Create a job for tracking
         job_id = create_job()
         update_job(job_id, {"status": "processing"})
         
-        logger.info(f"Starting memo generation for job {job_id}")
+        logger.info(f"Starting memo generation for job {job_id} with template '{template_key}'")
         
-        # Process in background using Redis Queue
-        memo_queue.enqueue(generate_memo_task, text, job_id)
+        # Process in background using Redis Queue with template
+        memo_queue.enqueue(generate_memo_task, text, job_id, template_key)
         
         return jsonify({
             "success": True,
@@ -97,11 +100,14 @@ def generate_memo_web():
         if not text:
             raise ValidationError("Missing 'text' field in request")
             
+        # Get the optional template parameter
+        template_key = request.form.get('template', 'default')
+            
         # Get the memo service
         memo_service = get_memo_service()
         
-        # Generate the memo
-        memo = memo_service.generate_memo(text)
+        # Generate the memo with template
+        memo = memo_service.generate_memo(text, template_key=template_key)
         
         return jsonify({
             "success": True,

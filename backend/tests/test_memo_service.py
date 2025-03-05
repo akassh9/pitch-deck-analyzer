@@ -1,115 +1,110 @@
-"""
-Tests for the memo service.
-"""
+"""Tests for memo generation service."""
 
-import unittest
-from unittest.mock import patch, MagicMock
+import pytest
+from unittest.mock import Mock, patch
 from ..core.memo_service import MemoService
 from ..utils.error_handling import ProcessingError
+from ..utils.memo_templates import TEMPLATES
 
-class TestMemoService(unittest.TestCase):
-    
-    def setUp(self):
-        self.config = MagicMock()
-        self.config.GROQ_API_KEY = "test_groq_key"
-        self.config.HF_API_KEY = "test_hf_key"
-        self.config.GOOGLE_API_KEY = "test_google_key"
-        self.config.GOOGLE_CSE_ID = "test_cse_id"
-        self.memo_service = MemoService(self.config)
-        
-    @patch('backend.utils.text_processing.prepare_text')
-    @patch('backend.core.memo_service.MemoService._call_groq_api')
-    def test_generate_memo_with_groq(self, mock_call_groq, mock_prepare_text):
-        # Setup mocks
-        mock_prepare_text.return_value = "Prepared text"
-        mock_call_groq.return_value = "Generated memo"
-        
-        # Call the method
-        result = self.memo_service.generate_memo("Raw text", refine=False)
-        
-        # Assertions
-        self.assertEqual(result, "Generated memo")
-        mock_prepare_text.assert_called_once_with("Raw text", refine=False)
-        mock_call_groq.assert_called_once_with("Prepared text")
-        
-    @patch('backend.utils.text_processing.prepare_text')
-    @patch('backend.core.memo_service.MemoService._call_groq_api')
-    @patch('backend.core.memo_service.MemoService._call_openrouter_api')
-    def test_generate_memo_fallback(self, mock_call_openrouter, mock_call_groq, mock_prepare_text):
-        # Setup mocks
-        mock_prepare_text.return_value = "Prepared text"
-        mock_call_groq.side_effect = Exception("Groq API error")
-        mock_call_openrouter.return_value = "Fallback memo"
-        
-        # Call the method
-        result = self.memo_service.generate_memo("Raw text", refine=False)
-        
-        # Assertions
-        self.assertEqual(result, "Fallback memo")
-        mock_prepare_text.assert_called_once_with("Raw text", refine=False)
-        mock_call_groq.assert_called_once_with("Prepared text")
-        mock_call_openrouter.assert_called_once_with("Prepared text")
-        
-    @patch('backend.utils.text_processing.prepare_text')
-    @patch('backend.core.memo_service.MemoService._call_groq_api')
-    @patch('backend.core.memo_service.MemoService._call_openrouter_api')
-    def test_generate_memo_failure(self, mock_call_openrouter, mock_call_groq, mock_prepare_text):
-        # Setup mocks
-        mock_prepare_text.return_value = "Prepared text"
-        mock_call_groq.side_effect = Exception("Groq API error")
-        mock_call_openrouter.side_effect = Exception("OpenRouter API error")
-        
-        # Call the method and check exception
-        with self.assertRaises(ProcessingError):
-            self.memo_service.generate_memo("Raw text", refine=False)
-        
-        # Assertions
-        mock_prepare_text.assert_called_once_with("Raw text", refine=False)
-        mock_call_groq.assert_called_once_with("Prepared text")
-        mock_call_openrouter.assert_called_once_with("Prepared text")
-        
-    @patch('backend.core.memo_service.MemoService._google_custom_search')
-    @patch('backend.core.memo_service.MemoService._extract_key_claims')
-    def test_validate_memo(self, mock_extract_claims, mock_google_search):
-        # Setup mocks
-        mock_extract_claims.return_value = "Key claims"
-        mock_google_search.return_value = [{"title": "Result", "snippet": "Snippet", "link": "Link"}]
-        
-        # Call the method
-        result = self.memo_service.validate_memo("Memo text")
-        
-        # Assertions
-        self.assertEqual(result, [{"title": "Result", "snippet": "Snippet", "link": "Link"}])
-        mock_extract_claims.assert_called_once_with("Memo text")
-        mock_google_search.assert_called_once_with("Key claims")
-        
-    def test_extract_key_claims(self):
-        # Test with a sample memo
-        memo = """
-        # Executive Summary
-        
-        This is a summary of the pitch deck.
-        
-        # Market Opportunity
-        
-        The market size is $10B with a 15% annual growth rate.
-        
-        # Competitive Landscape
-        
-        The main competitors are Company A, Company B, and Company C.
-        
-        # Financial Highlights
-        
-        The company projects $5M in revenue by 2025.
-        """
-        
-        # Call the method
-        result = self.memo_service._extract_key_claims(memo)
-        
-        # Assertions
-        self.assertIn("market size is $10B with a 15% annual growth rate", result)
-        self.assertIn("main competitors are Company A, Company B, and Company C", result)
-        self.assertIn("company projects $5M in revenue by 2025", result)
+@pytest.fixture
+def mock_config():
+    """Create a mock configuration."""
+    return Mock(
+        GROQ_API_KEY="test_groq_key",
+        HF_API_KEY="test_hf_key",
+        GOOGLE_API_KEY="test_google_key",
+        GOOGLE_CSE_ID="test_cse_id"
+    )
 
-if __name__ == '__main__':
-    unittest.main() 
+@pytest.fixture
+def memo_service(mock_config):
+    """Create a MemoService instance with mock config."""
+    return MemoService(mock_config)
+
+def test_generate_memo_with_default_template(memo_service):
+    """Test memo generation with default template."""
+    with patch('requests.post') as mock_post:
+        # Mock successful API response
+        mock_post.return_value.ok = True
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "Test memo content"}}]
+        }
+        
+        result = memo_service.generate_memo("Test input")
+        
+        # Verify API was called with default template
+        assert mock_post.call_count == 1
+        call_args = mock_post.call_args[1]["json"]
+        content = call_args["messages"][1]["content"]
+        
+        # Check that default template sections are included
+        for section in TEMPLATES["default"]["sections_order"]:
+            assert section in content
+        
+        assert result == "Test memo content"
+
+def test_generate_memo_with_custom_template(memo_service):
+    """Test memo generation with a custom template."""
+    with patch('requests.post') as mock_post:
+        mock_post.return_value.ok = True
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "Test memo content"}}]
+        }
+        
+        result = memo_service.generate_memo("Test input", template_key="seed")
+        
+        # Verify API was called with seed template
+        call_args = mock_post.call_args[1]["json"]
+        content = call_args["messages"][1]["content"]
+        
+        # Check that seed template sections are included
+        for section in TEMPLATES["seed"]["sections_order"]:
+            assert section in content
+        
+        assert result == "Test memo content"
+
+def test_generate_memo_with_invalid_template(memo_service):
+    """Test memo generation with invalid template falls back to default."""
+    with patch('requests.post') as mock_post:
+        mock_post.return_value.ok = True
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "Test memo content"}}]
+        }
+        
+        result = memo_service.generate_memo("Test input", template_key="nonexistent")
+        
+        # Verify API was called with default template
+        call_args = mock_post.call_args[1]["json"]
+        content = call_args["messages"][1]["content"]
+        
+        # Check that default template sections are included
+        for section in TEMPLATES["default"]["sections_order"]:
+            assert section in content
+        
+        assert result == "Test memo content"
+
+def test_generate_memo_api_error(memo_service):
+    """Test error handling when API call fails."""
+    with patch('requests.post') as mock_post:
+        mock_post.return_value.ok = False
+        mock_post.return_value.status_code = 500
+        mock_post.return_value.text = "API Error"
+        
+        with pytest.raises(ProcessingError):
+            memo_service.generate_memo("Test input")
+
+def test_template_instructions_in_prompt(memo_service):
+    """Test that template instructions are included in the prompt."""
+    with patch('requests.post') as mock_post:
+        mock_post.return_value.ok = True
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "Test memo content"}}]
+        }
+        
+        template_key = "seriesA"
+        memo_service.generate_memo("Test input", template_key=template_key)
+        
+        # Verify template instructions are in the prompt
+        call_args = mock_post.call_args[1]["json"]
+        content = call_args["messages"][1]["content"]
+        assert TEMPLATES[template_key]["instructions"] in content

@@ -68,13 +68,13 @@ class ApiClient {
   /**
    * Generate a memo from text
    */
-  async generateMemo(text: string): Promise<{ job_id: string }> {
+  async generateMemo(text: string, template: string = 'default'): Promise<{ job_id: string }> {
     const response = await fetch(`${API_BASE_URL}${API_CONFIG.endpoints.generateMemo}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, template }),
     });
     
     if (!response.ok) {

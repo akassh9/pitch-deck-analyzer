@@ -1180,3 +1180,178 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2025-03-04 14:09:54,753 - werkzeug - INFO - 127.0.0.1 - - [04/Mar/2025 14:09:54] "GET /api/status?job_id=ca39dbe5-3de7-45d4-9837-800929c330b9 HTTP/1.1" 200 -
 2025-03-04 14:09:55,739 - werkzeug - INFO - 127.0.0.1 - - [04/Mar/2025 14:09:55] "GET /api/status?job_id=ca39dbe5-3de7-45d4-9837-800929c330b9 HTTP/1.1" 200 -
 2025-03-04 14:09:56,737 - werkzeug - INFO - 127.0.0.1 - - [04/Mar/2025 14:09:56] "GET /api/status?job_id=ca39dbe5-3de7-45d4-9837-800929c330b9 HTTP/1.1" 200 -
+2025-03-05 18:20:41,098 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-05 18:20:46,171 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.29.117:5001
+2025-03-05 18:20:46,172 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-05 18:20:46,174 - werkzeug - INFO -  * Restarting with stat
+2025-03-05 18:20:46,415 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-05 18:20:46,431 - werkzeug - WARNING -  * Debugger is active!
+2025-03-05 18:20:46,437 - werkzeug - INFO -  * Debugger PIN: 108-713-146
+2025-03-05 18:21:20,422 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-05 18:21:20,473 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/8f91aa9d-facb-4982-a346-d84cccd07b04.pdf with job ID 8f91aa9d-facb-4982-a346-d84cccd07b04
+2025-03-05 18:21:20,510 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:20] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-05 18:21:21,928 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:21] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:22,926 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:22] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:23,932 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:23] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:25,002 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:25] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:26,001 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:26] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:26,997 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:26] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:27,997 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:27] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:28,999 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:28] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:29,928 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:29] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:30,926 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:30] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:31,925 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:31] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:32,925 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:32] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:33,923 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:33] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:34,927 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:34] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:35,925 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:35] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:36,929 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:36] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:37,928 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:37] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:38,929 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:38] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:39,928 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:39] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:40,928 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:40] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:41,926 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:41] "GET /api/status?job_id=8f91aa9d-facb-4982-a346-d84cccd07b04 HTTP/1.1" 200 -
+2025-03-05 18:21:52,570 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:52] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 18:21:52,573 - backend.api.memo_controller - INFO - Starting memo generation for job 90e13296-f542-4f33-9293-9b3d20b11cc8 with template 'default'
+2025-03-05 18:21:52,575 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:52] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 18:21:53,609 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:53] "GET /api/status?job_id=90e13296-f542-4f33-9293-9b3d20b11cc8 HTTP/1.1" 200 -
+2025-03-05 18:21:54,608 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:54] "GET /api/status?job_id=90e13296-f542-4f33-9293-9b3d20b11cc8 HTTP/1.1" 200 -
+2025-03-05 18:21:55,609 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:55] "GET /api/status?job_id=90e13296-f542-4f33-9293-9b3d20b11cc8 HTTP/1.1" 200 -
+2025-03-05 18:21:56,609 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:56] "GET /api/status?job_id=90e13296-f542-4f33-9293-9b3d20b11cc8 HTTP/1.1" 200 -
+2025-03-05 18:21:57,606 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:21:57] "GET /api/status?job_id=90e13296-f542-4f33-9293-9b3d20b11cc8 HTTP/1.1" 200 -
+2025-03-05 18:22:15,689 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:22:15] "OPTIONS /api/validate-selection HTTP/1.1" 200 -
+2025-03-05 18:22:15,691 - backend.api.memo_controller - INFO - Validating selection: total addressable market...
+2025-03-05 18:22:15,691 - backend.core.memo_service - INFO - Initialized MemoService
+2025-03-05 18:22:16,519 - backend.core.memo_service - INFO - Found 5 validation results
+2025-03-05 18:22:16,522 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:22:16] "POST /api/validate-selection HTTP/1.1" 200 -
+2025-03-05 18:26:00,704 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-05 18:26:05,743 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.29.117:5001
+2025-03-05 18:26:05,743 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-05 18:26:05,744 - werkzeug - INFO -  * Restarting with stat
+2025-03-05 18:26:05,963 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-05 18:26:05,974 - werkzeug - WARNING -  * Debugger is active!
+2025-03-05 18:26:05,980 - werkzeug - INFO -  * Debugger PIN: 108-713-146
+2025-03-05 18:26:25,806 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-05 18:26:25,974 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/722bfad0-4fdb-4cb0-b19c-28304a9368fd.pdf with job ID 722bfad0-4fdb-4cb0-b19c-28304a9368fd
+2025-03-05 18:26:25,986 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:25] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-05 18:26:27,460 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:27] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:28,458 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:28] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:29,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:29] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:30,456 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:30] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:31,456 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:31] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:32,461 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:32] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:33,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:33] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:34,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:34] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:35,456 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:35] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:36,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:36] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:37,458 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:37] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:38,458 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:38] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:39,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:39] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:40,459 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:40] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:41,458 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:41] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:42,458 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:42] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:43,457 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:43] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:44,459 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:44] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:45,461 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:45] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:46,460 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:46] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:26:47,461 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:26:47] "GET /api/status?job_id=722bfad0-4fdb-4cb0-b19c-28304a9368fd HTTP/1.1" 200 -
+2025-03-05 18:29:06,316 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:06] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 18:29:06,328 - backend.api.memo_controller - INFO - Starting memo generation for job f227d796-8402-4b16-adb1-2c93aff7d691 with template 'seed'
+2025-03-05 18:29:06,333 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:06] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 18:29:07,444 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:07] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:08,444 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:08] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:09,447 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:09] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:10,446 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:10] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:11,446 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:11] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:12,443 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:12] "GET /api/status?job_id=f227d796-8402-4b16-adb1-2c93aff7d691 HTTP/1.1" 200 -
+2025-03-05 18:29:51,222 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:51] "OPTIONS /api/validate-selection HTTP/1.1" 200 -
+2025-03-05 18:29:51,225 - backend.api.memo_controller - INFO - Validating selection: enture capital industry is growing rapidly...
+2025-03-05 18:29:51,226 - backend.core.memo_service - INFO - Initialized MemoService
+2025-03-05 18:29:52,098 - backend.core.memo_service - INFO - Found 5 validation results
+2025-03-05 18:29:52,100 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 18:29:52] "POST /api/validate-selection HTTP/1.1" 200 -
+2025-03-05 19:41:19,136 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:19] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 19:41:19,163 - backend.api.memo_controller - INFO - Starting memo generation for job 228452a0-82da-43d0-9460-0bbec71c5323 with template 'default'
+2025-03-05 19:41:19,181 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:19] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 19:41:20,345 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:20] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:21,348 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:21] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:22,349 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:22] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:23,347 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:23] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:24,347 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:24] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:25,347 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:25] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:26,345 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:26] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:41:27,348 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:41:27] "GET /api/status?job_id=228452a0-82da-43d0-9460-0bbec71c5323 HTTP/1.1" 200 -
+2025-03-05 19:46:37,169 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:37] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 19:46:37,183 - backend.api.memo_controller - INFO - Starting memo generation for job 4761c932-bf57-4e5a-be8b-5b0e18bb5295 with template 'seed'
+2025-03-05 19:46:37,191 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:37] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 19:46:38,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:38] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 19:46:39,276 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:39] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 19:46:40,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:40] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 19:46:41,276 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:41] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 19:46:42,275 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:42] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 19:46:43,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 19:46:43] "GET /api/status?job_id=4761c932-bf57-4e5a-be8b-5b0e18bb5295 HTTP/1.1" 200 -
+2025-03-05 20:55:03,341 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99.pdf with job ID 5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99
+2025-03-05 20:55:03,346 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:03] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-05 20:55:04,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:04] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:05,435 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:05] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:06,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:06] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:07,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:07] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:08,432 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:08] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:09,431 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:09] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:10,434 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:10] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:11,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:11] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:12,435 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:12] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:13,434 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:13] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:14,432 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:14] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:15,434 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:15] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:16,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:16] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:17,431 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:17] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:18,433 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:18] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:19,431 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:19] "GET /api/status?job_id=5fa2bf23-eb5b-4ad0-94b7-32acca8c8a99 HTTP/1.1" 200 -
+2025-03-05 20:55:34,456 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:34] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 20:55:34,460 - backend.api.memo_controller - INFO - Starting memo generation for job 1f2073db-5e4d-4a23-afaa-f5a4703bfb58 with template 'default'
+2025-03-05 20:55:34,464 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:34] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 20:55:35,496 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:35] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:36,499 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:36] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:37,499 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:37] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:38,500 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:38] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:39,499 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:39] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:40,497 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:40] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:41,500 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:41] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:55:42,499 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:55:42] "GET /api/status?job_id=1f2073db-5e4d-4a23-afaa-f5a4703bfb58 HTTP/1.1" 200 -
+2025-03-05 20:56:07,240 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/b7a12158-17fc-41c5-ba58-30d26a95e1ad.pdf with job ID b7a12158-17fc-41c5-ba58-30d26a95e1ad
+2025-03-05 20:56:07,243 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:07] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-05 20:56:08,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:08] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:09,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:09] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:10,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:10] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:11,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:11] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:12,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:12] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:13,272 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:13] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:14,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:14] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:15,269 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:15] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:16,269 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:16] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:17,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:17] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:18,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:18] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:19,269 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:19] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:20,270 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:20] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:21,272 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:21] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:22,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:22] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:23,271 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:23] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:24,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:24] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:25,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:25] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:26,274 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:26] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:27,273 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:27] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:28,272 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:28] "GET /api/status?job_id=b7a12158-17fc-41c5-ba58-30d26a95e1ad HTTP/1.1" 200 -
+2025-03-05 20:56:39,105 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:39] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-05 20:56:39,108 - backend.api.memo_controller - INFO - Starting memo generation for job 94975e42-fedb-416f-9e81-2f1fbf83c904 with template 'default'
+2025-03-05 20:56:39,110 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:39] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-05 20:56:40,138 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:40] "GET /api/status?job_id=94975e42-fedb-416f-9e81-2f1fbf83c904 HTTP/1.1" 200 -
+2025-03-05 20:56:41,139 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:41] "GET /api/status?job_id=94975e42-fedb-416f-9e81-2f1fbf83c904 HTTP/1.1" 200 -
+2025-03-05 20:56:42,141 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:42] "GET /api/status?job_id=94975e42-fedb-416f-9e81-2f1fbf83c904 HTTP/1.1" 200 -
+2025-03-05 20:56:43,142 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:43] "GET /api/status?job_id=94975e42-fedb-416f-9e81-2f1fbf83c904 HTTP/1.1" 200 -
+2025-03-05 20:56:44,142 - werkzeug - INFO - 127.0.0.1 - - [05/Mar/2025 20:56:44] "GET /api/status?job_id=94975e42-fedb-416f-9e81-2f1fbf83c904 HTTP/1.1" 200 -
