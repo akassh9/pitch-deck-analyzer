@@ -8,11 +8,22 @@ interface TemplateSelectorProps {
 const templates = [
   { id: 'default', name: 'Default', description: 'Balanced analysis suitable for most pitch decks' },
   { id: 'seed', name: 'Seed Stage', description: 'Focus on team capabilities and early validation' },
-  { id: 'seriesA', name: 'Series A', description: 'Emphasis on growth metrics and unit economics' },
+  { id: 'seriesa', name: 'Series A', description: 'Emphasis on growth metrics and unit economics' },
   { id: 'growth', name: 'Growth Stage', description: 'Focus on market leadership and scaling' },
 ];
 
 export function TemplateSelector({ selectedTemplate, onTemplateChange }: TemplateSelectorProps) {
+  console.log('TemplateSelector rendering with selectedTemplate:', selectedTemplate);
+  
+  // Check if the selected template is valid
+  const isValidTemplate = templates.some(t => t.id === selectedTemplate);
+  console.log('Is valid template:', isValidTemplate);
+  
+  // If not valid, log a warning
+  if (!isValidTemplate) {
+    console.warn(`Warning: Selected template "${selectedTemplate}" is not in the valid templates list`);
+  }
+  
   return (
     <div className="space-y-4">
       <label className="block text-lg font-serif">Select Template</label>
@@ -25,7 +36,10 @@ export function TemplateSelector({ selectedTemplate, onTemplateChange }: Templat
                 ? 'border-primary bg-primary/10'
                 : 'border-border hover:border-primary/50'
             }`}
-            onClick={() => onTemplateChange(template.id)}
+            onClick={() => {
+              console.log(`Template selected: ${template.id}`);
+              onTemplateChange(template.id);
+            }}
           >
             <h3 className="font-serif text-lg mb-1">{template.name}</h3>
             <p className="text-sm text-muted-foreground">{template.description}</p>

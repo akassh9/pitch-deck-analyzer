@@ -25,10 +25,26 @@ export default function Page() {
     setIsLoading(true);
     
     try {
+      console.log('Starting PDF upload process...'); // Debug log
       const result = await apiClient.uploadPdf(file);
+      console.log('Upload successful, job_id received:', result.job_id); // Debug log
+      
+      // Store job_id in localStorage
       localStorage.setItem('job_id', result.job_id);
-      // Set nextRoute to edit for deck extraction flow:
+      console.log('Stored job_id in localStorage:', result.job_id); // Debug log
+      
+      // Set nextRoute to edit for initial text extraction
       localStorage.setItem('nextRoute', '/edit');
+      console.log('Set nextRoute in localStorage to: /edit'); // Debug log
+      
+      // Verify localStorage values before navigation
+      console.log('localStorage state before navigation:', {
+        job_id: localStorage.getItem('job_id'),
+        nextRoute: localStorage.getItem('nextRoute')
+      }); // Debug log
+      
+      // Navigate to loading page
+      console.log('Navigating to loading page...'); // Debug log
       router.push('/loading');
     } catch (error) {
       console.error('Upload error:', error);

@@ -6,6 +6,7 @@ import pytesseract
 from pdf2image import convert_from_path
 import pdfplumber
 from .config import Config
+from .utils.text_processing import refine_text  # Import refine_text from text_processing
 
 DEBUG_LOGGING = Config.DEBUG_LOGGING
 
@@ -88,70 +89,6 @@ def needs_ocr(text):
 def ocr_page(image):
     custom_config = r'--oem 3 --psm 6'
     return pytesseract.image_to_string(image, config=custom_config)
-
-def refine_text(text):
-    # Use the central configuration to access the API key.
-    if not Config.HF_API_KEY:
-        return text
-    if DEBUG_LOGGING:
-        log_dir = os.path.join(os.getcwd(), 'logs')
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        log_file = os.path.join(log_dir, f'raw_text_{timestamp}.txt')
-        with open(log_file, 'w', encoding='utf-8') as f:
-            f.write("=== Raw Text ===\n\n")
-            f.write(text)
-            f.write("\n\n=== End Raw Text ===")
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {Config.HF_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    max_chunk_size = 2000
-    chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
-    refined_chunks = []
-    for chunk in chunks:
-        data = {
-            "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "Remove only unnecessary whitespace, extra newlines, and redundant paragraph breaks. "
-                        "Return the text with improved formatting without altering its content."
-                        "Only return the improved text, do not add any instructions/confimrations/commnets."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": f"{chunk}"
-                }
-            ],
-            "temperature": 0.1,
-            "max_tokens": 130000,
-            "top_p": 1.0,
-            "top_k": 0,
-            "frequency_penalty": 0.0,
-            "presence_penalty": 0.0,
-            "repetition_penalty": 1.0,
-            "min_p": 0.0,
-            "top_a": 0.0
-        }
-        try:
-            response = requests.post(url, headers=headers, json=data, timeout=10)
-            if response.status_code == 200:
-                result = response.json()
-                if "choices" in result and result["choices"]:
-                    refined_chunk = result["choices"][0]["message"]["content"].strip()
-                    refined_chunks.append(refined_chunk)
-                else:
-                    refined_chunks.append(chunk)
-            else:
-                refined_chunks.append(chunk)
-        except Exception as e:
-            refined_chunks.append(chunk)
-    return "\n".join(refined_chunks)
 
 def prepare_text(raw_text, refine=False):
     cleaned = clean_text(raw_text)

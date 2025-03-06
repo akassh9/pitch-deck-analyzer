@@ -104,24 +104,35 @@ class TestTextProcessing(unittest.TestCase):
     @patch('backend.utils.text_processing.clean_text')
     @patch('backend.utils.text_processing.refine_text')
     def test_prepare_text(self, mock_refine_text, mock_clean_text):
-        # Setup mocks
+        """Test the prepare_text function with and without refinement."""
+        # Setup
         mock_clean_text.return_value = "Cleaned text"
-        mock_refine_text.return_value = "Refined text"
+        mock_refine_text.return_value = {
+            "cleaned_text": "Refined text",
+            "startup_stage": "seed"
+        }
         
         # Test without refinement
         result = prepare_text("Raw text", refine=False)
-        self.assertEqual(result, "Cleaned text")
         mock_clean_text.assert_called_once_with("Raw text")
         mock_refine_text.assert_not_called()
+        self.assertEqual(result, {
+            "cleaned_text": "Cleaned text",
+            "startup_stage": "default"
+        })
         
         # Reset mocks
         mock_clean_text.reset_mock()
+        mock_refine_text.reset_mock()
         
         # Test with refinement
         result = prepare_text("Raw text", refine=True)
-        self.assertEqual(result, "Refined text")
         mock_clean_text.assert_called_once_with("Raw text")
         mock_refine_text.assert_called_once_with("Cleaned text")
+        self.assertEqual(result, {
+            "cleaned_text": "Refined text",
+            "startup_stage": "seed"
+        })
 
 if __name__ == '__main__':
     unittest.main() 

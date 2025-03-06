@@ -25,52 +25,51 @@ class PDFService:
         self.upload_folder = config.UPLOAD_FOLDER
         logger.info(f"Initialized PDFService with upload folder: {self.upload_folder}")
     
-    def process_pdf(self, file_path, job_id):
+    def process_pdf(self, file_path: str, job_id: str = None) -> dict:
         """
-        Process a PDF file and extract its text content.
+        Process a PDF file and extract its contents.
         
         Args:
             file_path (str): Path to the PDF file
-            job_id (str): ID of the job to update progress
+            job_id (str): Optional job ID for tracking progress
             
         Returns:
-            str: The extracted and prepared text
-            
-        Raises:
-            ProcessingError: If processing fails
+            dict: Dictionary containing processed text and metadata
         """
         try:
-            update_job(job_id, {"status": "processing", "progress": 10})
-            logger.info(f"Starting PDF processing for job {job_id}, file: {file_path}")
+            if job_id:
+                update_job(job_id, {"status": "extracting"})
             
-            # Extract text using multiple methods
             extracted_text = self._extract_text(file_path, job_id)
             
-            # Clean and prepare the text
-            from ..utils.text_processing import prepare_text
-            prepared_text = prepare_text(extracted_text, refine=True)
+            if job_id:
+                update_job(job_id, {"status": "refining"})
             
-            update_job(job_id, {
-                "status": "completed", 
-                "progress": 100,
-                "result": prepared_text
-            })
+            result = self.prepare_text(extracted_text, refine=True)
             
-            logger.info(f"PDF processing completed for job {job_id}")
-            return prepared_text
+            if job_id:
+                update_job(job_id, {
+                    "status": "completed",
+                    "result": {
+                        "cleaned_text": result["cleaned_text"],
+                        "startup_stage": result["startup_stage"]
+                    }
+                })
+            
+            return {
+                "success": True,
+                "cleaned_text": result["cleaned_text"],
+                "startup_stage": result["startup_stage"]
+            }
             
         except Exception as e:
-            logger.error(f"Error processing PDF for job {job_id}: {str(e)}", exc_info=True)
-            update_job(job_id, {"status": "failed", "error": str(e)})
-            raise ProcessingError(f"Failed to process PDF: {str(e)}")
-        finally:
-            # Clean up the file
-            try:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                    logger.debug(f"Removed temporary file: {file_path}")
-            except Exception as e:
-                logger.warning(f"Failed to remove temporary file {file_path}: {str(e)}")
+            logger.error(f"Error processing PDF: {str(e)}")
+            if job_id:
+                update_job(job_id, {
+                    "status": "error",
+                    "error": str(e)
+                })
+            raise
     
     def _extract_text(self, file_path, job_id):
         """
@@ -138,6 +137,20 @@ class PDFService:
         logger.info(f"Extraction complete for job {job_id}, extracted {len(extracted_text)} characters")
         
         return extracted_text
+
+    def prepare_text(self, text, refine=True):
+        """
+        Prepare the extracted text.
+        
+        Args:
+            text (str): The extracted text
+            refine (bool): Whether to refine the text
+            
+        Returns:
+            dict: Dictionary containing processed text and metadata
+        """
+        from ..utils.text_processing import prepare_text
+        return prepare_text(text, refine=refine)
 
 # Create a singleton instance
 _pdf_service = None

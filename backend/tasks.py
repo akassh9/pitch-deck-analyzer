@@ -70,15 +70,22 @@ def generate_memo_task(text, job_id, template_key="default"):
         # Generate the memo with template
         memo = memo_service.generate_memo(text, template_key=template_key)
         
-        # Update job with result
+        # Structure the result as expected by the frontend
+        result = {
+            "memo": memo,
+            "template_used": template_key,
+            "startup_stage": "default"  # We could enhance this later to detect the stage
+        }
+        
+        # Update job with structured result
         update_job(job_id, {
             "status": "completed",
             "progress": 100,
-            "result": memo
+            "result": result
         })
         
         logger.info(f"Memo generation task completed for job {job_id}")
-        return memo
+        return result
         
     except Exception as e:
         logger.error(f"Error in memo generation task for job {job_id}: {str(e)}", exc_info=True)

@@ -6,11 +6,17 @@ import { API_CONFIG } from './config';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || API_CONFIG.baseUrl;
 
+export interface MemoResult {
+  memo: string;
+  template_used: string;
+  startup_stage: string;
+}
+
 export interface JobStatus {
   job_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress?: number;
-  result?: string;
+  result?: MemoResult | string;
   error?: string;
 }
 

@@ -7,7 +7,7 @@ import logging
 import requests
 from ..utils.error_handling import ProcessingError
 from ..utils.text_processing import prepare_text
-from ..utils.memo_templates import TEMPLATES
+from ..prompts import build_memo_prompt  # New import for consolidated prompts
 
 logger = logging.getLogger(__name__)
 
@@ -39,33 +39,30 @@ class MemoService:
             input_text = text if refine else prepare_text(text, refine=False)
             logger.info(f"Generating memo from {len(input_text)} chars of text using template '{template_key}'")
             
-            # Get template
-            template = TEMPLATES.get(template_key, TEMPLATES["default"])
-            
             # Try with primary service (Groq)
             if self.config.GROQ_API_KEY:
                 try:
                     logger.info("Attempting to generate memo with Groq API")
-                    return self._call_groq_api(input_text, template)
+                    return self._call_groq_api(input_text, template_key)
                 except Exception as e:
                     logger.warning(f"Groq API failed: {str(e)}, falling back to OpenRouter")
             else:
                 logger.info("No Groq API key configured, using OpenRouter")
             
             # Fallback to secondary service
-            return self._call_openrouter_api(input_text, template)
+            return self._call_openrouter_api(input_text, template_key)
                 
         except Exception as e:
             logger.error(f"Failed to generate memo: {str(e)}", exc_info=True)
             raise ProcessingError(f"Failed to generate memo: {str(e)}")
     
-    def _call_groq_api(self, input_text, template):
+    def _call_groq_api(self, input_text, template_key):
         """
         Call the Groq API to generate a memo.
         
         Args:
             input_text (str): The preprocessed text
-            template (dict): The template to use
+            template_key (str): The key of the template to use
             
         Returns:
             str: The generated memo
@@ -79,24 +76,14 @@ class MemoService:
             "Content-Type": "application/json"
         }
         
-        # Format sections for prompt
-        sections = "\n".join(f"{i+1}. {section}" for i, section in enumerate(template["sections_order"]))
+        # Use the consolidated prompt builder to get the system and user messages
+        prompt = build_memo_prompt(input_text, template_key)
         
         data = {
             "model": "deepseek-r1-distill-llama-70b",
             "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an expert venture capital analyst specializing in creating detailed investment memos."
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"{template['instructions']}\n\n"
-                        f"Please structure the memo with the following sections:\n{sections}\n\n"
-                        f"Pitch Deck Content: {input_text}"
-                    )
-                }
+                {"role": "system", "content": prompt["system"]},
+                {"role": "user", "content": prompt["user"]}
             ],
             "temperature": 0.7,
             "max_tokens": 16384
@@ -126,13 +113,13 @@ class MemoService:
         logger.error(error_message)
         raise Exception(error_message)
     
-    def _call_openrouter_api(self, input_text, template):
+    def _call_openrouter_api(self, input_text, template_key):
         """
         Call the OpenRouter API to generate a memo.
         
         Args:
             input_text (str): The preprocessed text
-            template (dict): The template to use
+            template_key (str): The key of the template to use
             
         Returns:
             str: The generated memo
@@ -146,24 +133,14 @@ class MemoService:
             "Content-Type": "application/json",
         }
         
-        # Format sections for prompt
-        sections = "\n".join(f"{i+1}. {section}" for i, section in enumerate(template["sections_order"]))
+        # Use the consolidated prompt builder to get the system and user messages
+        prompt = build_memo_prompt(input_text, template_key)
         
         data = {
             "model": "deepseek/deepseek-r1:free",
             "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an expert venture capital analyst specializing in creating detailed investment memos."
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"{template['instructions']}\n\n"
-                        f"Please structure the memo with the following sections:\n{sections}\n\n"
-                        f"Pitch Deck Content: {input_text}"
-                    )
-                }
+                {"role": "system", "content": prompt["system"]},
+                {"role": "user", "content": prompt["user"]}
             ],
             "temperature": 0.7,
             "max_tokens": 16384
@@ -260,3 +237,60 @@ def get_memo_service(config=None):
         _memo_service = MemoService(config or Config)
         
     return _memo_service 
+
+def generate_memo(text: str, job_id: str = None, template_key: str = None, refine: bool = True) -> dict:
+    """
+    Generate an investment memo from the given text.
+    
+    Args:
+        text (str): The input text to generate the memo from
+        job_id (str): Optional job ID for tracking progress
+        template_key (str): Optional template key to use
+        refine (bool): Whether to refine the input text
+        
+    Returns:
+        dict: Dictionary containing the generated memo and metadata
+    """
+    try:
+        if job_id:
+            update_job(job_id, {"status": "preparing"})
+            
+        # Prepare the input text
+        result = prepare_text(text, refine=refine)
+        cleaned_text = result["cleaned_text"]
+        
+        # If no template specified, use the predicted stage
+        if not template_key:
+            template_key = result["startup_stage"]
+            
+        if job_id:
+            update_job(job_id, {"status": "generating"})
+            
+        # Generate the memo using the template
+        memo = generate_memo_from_template(cleaned_text, template_key)
+        
+        if job_id:
+            update_job(job_id, {
+                "status": "completed",
+                "result": {
+                    "memo": memo,
+                    "template_used": template_key,
+                    "startup_stage": result["startup_stage"]
+                }
+            })
+            
+        return {
+            "success": True,
+            "memo": memo,
+            "template_used": template_key,
+            "startup_stage": result["startup_stage"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating memo: {str(e)}")
+        if job_id:
+            update_job(job_id, {
+                "status": "error",
+                "error": str(e)
+            })
+        raise 

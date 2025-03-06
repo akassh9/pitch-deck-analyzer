@@ -10,6 +10,8 @@ import logging
 import requests
 import pytesseract
 from pdf2image import convert_from_path
+import json
+from ..prompts import build_text_refinement_prompt  # Import the consolidated prompt builder
 
 logger = logging.getLogger(__name__)
 
@@ -220,118 +222,175 @@ def ocr_page(image):
     custom_config = r'--oem 3 --psm 6'
     return pytesseract.image_to_string(image, config=custom_config)
 
-def refine_text(text, api_key=None):
+def refine_text(text, api_key=None): #no idea what this is doing, but can't remove because it breaks the code
+    # ...
+    # Use the consolidated prompt builder
+    prompt = build_text_refinement_prompt()  # This might be wrong
+    
+    data = {
+        "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
+        "messages": [
+            {"role": "system", "content": prompt["system"]},
+            {"role": "user", "content": prompt["user"]}
+        ],
+
+    }
+
+def refine_text_with_stage(text: str, api_key=None) -> dict:
     """
-    Refine text using an LLM API.
+    Refine text and predict startup stage using an LLM API.
     
     Args:
         text (str): The text to refine
         api_key (str): API key for the LLM service
         
     Returns:
-        str: The refined text
+        dict: Dictionary containing cleaned text and predicted startup stage
     """
     from ..infrastructure.config import Config
+    import requests
+    import json
+    import re
+    
+    logger.info("Starting text refinement with stage prediction")
     
     # Use provided API key or fall back to config
     api_key = api_key or Config.HF_API_KEY
     
     if not api_key:
-        logger.warning("No API key provided for text refinement, skipping")
-        return text
-    
-    # Log raw text if debug logging is enabled
-    if Config.DEBUG_LOGGING:
-        log_dir = os.path.join(os.getcwd(), 'logs')
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        log_file = os.path.join(log_dir, f'raw_text_{timestamp}.txt')
-        with open(log_file, 'w', encoding='utf-8') as f:
-            f.write("=== Raw Text ===\n\n")
-            f.write(text)
-            f.write("\n\n=== End Raw Text ===")
-        logger.debug(f"Logged raw text to {log_file}")
-    
-    # Split text into chunks to avoid token limits
-    max_chunk_size = 2000
-    chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
-    refined_chunks = []
-    
-    logger.info(f"Refining text in {len(chunks)} chunks")
-    
-    for i, chunk in enumerate(chunks):
-        logger.debug(f"Processing chunk {i+1}/{len(chunks)}")
-        
-        url = "https://openrouter.ai/api/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
+        logger.warning("No API key provided for text refinement, using basic cleaning")
+        return {
+            "cleaned_text": clean_text(text),
+            "startup_stage": "default"
         }
+    
+    # Define the prompt for text refinement and stage prediction
+    prompt = (
+        "You are an assistant that processes text data. "
+        "Your task is to:\n\n"
+        "1. Clean and format the given text by:\n"
+        "   - Removing unnecessary whitespace and redundant newlines\n"
+        "   - Fixing formatting issues\n"
+        "   - Maintaining proper paragraph structure\n\n"
+        "2. Analyze the content to determine the startup's stage.\n\n"
+        "First output the cleaned text, then on a new line start with 'STAGE:' "
+        "followed by one of these exact stages (case sensitive):\n"
+        "- seed (for early-stage startups seeking initial funding)\n"
+        "- seriesa (for startups with proven business model seeking growth capital)\n"
+        "- growth (for established startups scaling rapidly)\n"
+        "- default (if unable to determine)\n\n"
+        f"{text}"
+    )
+    
+    logger.info("Sending request to LLM API")
+    
+    # Build the request payload
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a text processing assistant."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.1,
+        "max_tokens": 130000
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        response.raise_for_status()
+        result = response.json()
         
-        data = {
-            "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "Remove only unnecessary whitespace, extra newlines, and redundant paragraph breaks. "
-                        "Return the text with improved formatting without altering its content. "
-                        "Only return the improved text, do not add any instructions/confirmations/comments."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": f"{chunk}"
-                }
-            ],
-            "temperature": 0.5,
-            "max_tokens": 130000,
-            "top_p": 1.0
-        }
+        # Extract the markdown response
+        output = result["choices"][0]["message"]["content"].strip()
+        logger.info(f"LLM Response received, length: {len(output)} characters")
+        logger.info(f"LLM Response first 100 chars: {output[:100]}...")
+        logger.info(f"LLM Response last 100 chars: {output[-100:] if len(output) > 100 else output}")
         
-        try:
-            response = requests.post(url, headers=headers, json=data, timeout=30)
+        # Look for stage pattern anywhere in the text
+        stage_pattern = r'\*{0,2}STAGE:\*{0,2}\s*(?:\n\s*)*\*{0,2}([\w]+)\*{0,2}'
+        stage_match = re.search(stage_pattern, output, re.IGNORECASE | re.DOTALL)
+
+        
+        if stage_match:
+            # Extract the stage
+            stage_raw = stage_match.group(1).strip()
+            logger.info(f"Found stage in output: '{stage_raw}'")
             
-            if response.status_code == 200:
-                result = response.json()
-                if "choices" in result and result["choices"]:
-                    refined_chunk = result["choices"][0]["message"]["content"].strip()
-                    refined_chunks.append(refined_chunk)
-                    logger.debug(f"Successfully refined chunk {i+1}")
-                else:
-                    logger.warning(f"Unexpected API response format for chunk {i+1}")
-                    refined_chunks.append(chunk)
+            # Normalize stage name
+            stage_lower = stage_raw.lower()
+            
+            # Map to correct case format for frontend
+            if 'seed' in stage_lower:
+                stage = 'seed'
+            elif 'seriesa' in stage_lower or 'series a' in stage_lower or 'series_a' in stage_lower:
+                stage = 'seriesa'
+            elif 'growth' in stage_lower:
+                stage = 'growth'
             else:
-                logger.warning(f"API request failed with status {response.status_code} for chunk {i+1}")
-                refined_chunks.append(chunk)
-                
-        except Exception as e:
-            logger.error(f"Error refining chunk {i+1}: {str(e)}")
-            refined_chunks.append(chunk)
-    
-    return "\n".join(refined_chunks)
+                stage = 'default'
+            
+            logger.info(f"Normalized stage: '{stage}'")
+            
+            # Remove the stage line from the cleaned text
+            cleaned_text = re.sub(r'(?:^|\n)\*{0,2}STAGE:\*{0,2}.*?(?=\n|$)', '', output, flags=re.IGNORECASE).strip()
+            logger.info(f"Removed stage line from cleaned text, new length: {len(cleaned_text)}")
+            
+            # Ensure we're returning the correct stage
+            logger.info(f"Final stage being returned: '{stage}'")
+            
+            return {
+                "cleaned_text": cleaned_text,
+                "startup_stage": stage
+            }
+        else:
+            logger.warning("No stage found in output, using default")
+            return {
+                "cleaned_text": output,
+                "startup_stage": "default"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in text refinement with stage prediction: {str(e)}")
+        return {
+            "cleaned_text": clean_text(text),
+            "startup_stage": "default"
+        }
 
 def prepare_text(raw_text, refine=False):
     """
-    Prepare text for analysis.
+    Prepare text by cleaning and optionally refining it.
     
     Args:
-        raw_text (str): The raw text to prepare
-        refine (bool): Whether to refine the text using an LLM
+        raw_text (str): The raw text to process
+        refine (bool): Whether to use LLM refinement
         
     Returns:
-        str: The prepared text
+        dict: Dictionary containing cleaned text and startup stage
     """
-    logger.info(f"Preparing text ({len(raw_text)} chars, refine={refine})")
+    logger.info(f"Preparing text with refinement={'enabled' if refine else 'disabled'}")
     
-    # Clean the text
-    cleaned = clean_text(raw_text)
-    logger.debug(f"Cleaned text ({len(cleaned)} chars)")
+    # First do basic cleaning to handle major formatting issues
+    cleaned_text = clean_text(raw_text)
     
-    # Refine if requested
     if refine:
-        logger.info("Refining text with LLM")
-        return refine_text(cleaned)
+        logger.info("Sending text to LLM for refinement")
+        result = refine_text_with_stage(cleaned_text)
+        logger.info(f"LLM refinement complete. Stage identified: {result['startup_stage']}")
+        return result
     
-    return cleaned 
+    logger.info("Skipping LLM refinement")
+    return {
+        "cleaned_text": cleaned_text,
+        "startup_stage": "default"
+    }
