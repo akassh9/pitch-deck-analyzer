@@ -233,7 +233,7 @@ def get_memo_service(config=None):
     global _memo_service
     
     if _memo_service is None:
-        from ..infrastructure.config import Config
+        from ..config import Config
         _memo_service = MemoService(config or Config)
         
     return _memo_service 

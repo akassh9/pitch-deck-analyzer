@@ -160,7 +160,7 @@ def get_pdf_service(config=None):
     global _pdf_service
     
     if _pdf_service is None:
-        from ..infrastructure.config import Config
+        from ..config import Config
         _pdf_service = PDFService(config or Config)
         
     return _pdf_service 

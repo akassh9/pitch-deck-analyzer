@@ -158,3 +158,140 @@
 2025-03-06 12:14:34,749 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 12:14:34] "GET /api/status?job_id=f5e76f50-3a9f-4398-afc0-8da139053bf0 HTTP/1.1" 200 -
 2025-03-06 12:14:35,749 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 12:14:35] "GET /api/status?job_id=f5e76f50-3a9f-4398-afc0-8da139053bf0 HTTP/1.1" 200 -
 2025-03-06 12:14:36,749 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 12:14:36] "GET /api/status?job_id=f5e76f50-3a9f-4398-afc0-8da139053bf0 HTTP/1.1" 200 -
+2025-03-06 21:02:46,202 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-06 21:02:51,269 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.29.117:5001
+2025-03-06 21:02:51,270 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-06 21:02:51,272 - werkzeug - INFO -  * Restarting with stat
+2025-03-06 21:02:51,474 - __main__ - INFO - Starting Pitch Deck Analyzer API
+2025-03-06 21:02:51,488 - werkzeug - WARNING -  * Debugger is active!
+2025-03-06 21:02:51,494 - werkzeug - INFO -  * Debugger PIN: 108-713-146
+2025-03-06 21:06:19,222 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-06 21:06:19,266 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/2aac6c95-a7a7-40b9-9ca3-c1b4173df140.pdf with job ID 2aac6c95-a7a7-40b9-9ca3-c1b4173df140
+2025-03-06 21:06:19,297 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:19] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-06 21:06:19,483 - backend.tasks - INFO - Starting PDF processing task for job 2aac6c95-a7a7-40b9-9ca3-c1b4173df140
+2025-03-06 21:06:19,483 - backend.core.pdf_service - INFO - Initialized PDFService with upload folder: /Users/akash009/pitch-deck-analyzer/backend/uploads
+2025-03-06 21:06:19,484 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-06 21:06:19,489 - backend.core.pdf_service - INFO - PDF has 8 pages
+2025-03-06 21:06:20,574 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:20] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:21,570 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:21] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:22,570 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:22] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:23,570 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:23] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:24,573 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:24] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:26,214 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:26] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:27,213 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:27] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:28,214 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:28] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:29,214 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:29] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:30,216 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:30] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:31,213 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:31] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:32,215 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:32] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:33,031 - backend.core.pdf_service - INFO - Extraction complete for job 2aac6c95-a7a7-40b9-9ca3-c1b4173df140, extracted 1794 characters
+2025-03-06 21:06:33,036 - backend.utils.text_processing - INFO - Preparing text with refinement=enabled
+2025-03-06 21:06:33,037 - backend.utils.text_processing - INFO - Sending text to LLM for refinement
+2025-03-06 21:06:33,037 - backend.utils.text_processing - INFO - Starting text refinement with stage prediction
+2025-03-06 21:06:33,038 - backend.utils.text_processing - INFO - Sending request to LLM API
+2025-03-06 21:06:33,216 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:33] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:34,216 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:34] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:35,217 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:35] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:35,572 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:35] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:36,573 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:36] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:37,576 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:37] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:38,574 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:38] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:39,577 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:39] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:40,571 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:40] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:06:40,589 - backend.utils.text_processing - INFO - LLM Response received, length: 1738 characters
+2025-03-06 21:06:40,591 - backend.utils.text_processing - INFO - LLM Response first 100 chars: **Cleaned and Formatted Text**
+
+Akaash Kha is a graduate of Physics and Economics from the Universit...
+2025-03-06 21:06:40,592 - backend.utils.text_processing - INFO - LLM Response last 100 chars: PI & Operational Costs
+	+ Talent Acquisition
+	+ Product & Market Development
+
+**STAGE:** **seriesa**
+2025-03-06 21:06:40,594 - backend.utils.text_processing - INFO - Found stage in output: 'seriesa'
+2025-03-06 21:06:40,594 - backend.utils.text_processing - INFO - Normalized stage: 'seriesa'
+2025-03-06 21:06:40,595 - backend.utils.text_processing - INFO - Removed stage line from cleaned text, new length: 1714
+2025-03-06 21:06:40,596 - backend.utils.text_processing - INFO - Final stage being returned: 'seriesa'
+2025-03-06 21:06:40,597 - backend.utils.text_processing - INFO - LLM refinement complete. Stage identified: seriesa
+2025-03-06 21:06:40,599 - backend.tasks - INFO - PDF processing task completed for job 2aac6c95-a7a7-40b9-9ca3-c1b4173df140
+2025-03-06 21:06:40,606 - rq.worker - INFO - Successfully completed backend.tasks.process_pdf_task('/Users/akash009/pitch-deck-analyzer/backend/uploads/2aac6c95-a7a7-40b9-9ca..., '2aac6c95-a7a7-40b9-9ca3-c1b4173df140') job in 0:00:21.289024s on worker 21844ebf479c4ba2aa874afe8cce6236
+2025-03-06 21:06:40,607 - rq.worker - INFO - [32mpdf_jobs[39;49;00m: [34mJob OK[39;49;00m (a9faf481-a5f0-4037-90cd-14a5629fbc6c)
+2025-03-06 21:06:40,607 - rq.worker - INFO - Result is kept for 500 seconds
+2025-03-06 21:06:41,574 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:06:41] "GET /api/status?job_id=2aac6c95-a7a7-40b9-9ca3-c1b4173df140 HTTP/1.1" 200 -
+2025-03-06 21:07:13,897 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:13] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-06 21:07:13,903 - backend.api.memo_controller - INFO - Starting memo generation for job 5a0290bf-16b8-4c73-9eab-6175bf7436fb with template 'seed'
+2025-03-06 21:07:13,913 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:13] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-06 21:07:14,165 - backend.tasks - INFO - Starting memo generation task for job 5a0290bf-16b8-4c73-9eab-6175bf7436fb with template 'seed'
+2025-03-06 21:07:14,166 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-06 21:07:14,170 - backend.core.memo_service - INFO - Initialized MemoService
+2025-03-06 21:07:14,171 - backend.utils.text_processing - INFO - Preparing text with refinement=disabled
+2025-03-06 21:07:14,172 - backend.utils.text_processing - INFO - Skipping LLM refinement
+2025-03-06 21:07:14,173 - backend.core.memo_service - INFO - Generating memo from 2 chars of text using template 'seed'
+2025-03-06 21:07:14,175 - backend.core.memo_service - INFO - Attempting to generate memo with Groq API
+2025-03-06 21:07:15,006 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:15] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:16,008 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:16] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:17,007 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:17] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:18,006 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:18] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:19,008 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:19] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:19,274 - backend.core.memo_service - INFO - Successfully generated memo with Groq API (5160 chars)
+2025-03-06 21:07:19,276 - backend.tasks - INFO - Memo generation task completed for job 5a0290bf-16b8-4c73-9eab-6175bf7436fb
+2025-03-06 21:07:19,282 - rq.worker - INFO - Successfully completed backend.tasks.generate_memo_task('Akash Khanikor is a graduate of Physics and Economics from the University ..., '5a0290bf-16b8-4c73-9eab-6175bf7436fb', 'seed') job in 0:00:05.314112s on worker 21844ebf479c4ba2aa874afe8cce6236
+2025-03-06 21:07:19,284 - rq.worker - INFO - [32mmemo_jobs[39;49;00m: [34mJob OK[39;49;00m (35ba83b0-0a28-4061-afaa-f9db88259f08)
+2025-03-06 21:07:19,284 - rq.worker - INFO - Result is kept for 500 seconds
+2025-03-06 21:07:20,006 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:20] "GET /api/status?job_id=5a0290bf-16b8-4c73-9eab-6175bf7436fb HTTP/1.1" 200 -
+2025-03-06 21:07:27,481 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:27] "OPTIONS /api/validate-selection HTTP/1.1" 200 -
+2025-03-06 21:07:27,484 - backend.api.memo_controller - INFO - Validating selection: inefficiency...
+2025-03-06 21:07:27,484 - backend.core.memo_service - INFO - Initialized MemoService
+2025-03-06 21:07:28,236 - backend.core.memo_service - INFO - Found 5 validation results
+2025-03-06 21:07:28,237 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:07:28] "POST /api/validate-selection HTTP/1.1" 200 -
+2025-03-06 21:08:18,930 - backend.api.pdf_controller - INFO - Saved uploaded PDF to /Users/akash009/pitch-deck-analyzer/backend/uploads/7faf76f7-966e-4731-84ce-32288960bdcc.pdf with job ID 7faf76f7-966e-4731-84ce-32288960bdcc
+2025-03-06 21:08:18,944 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:18] "[35m[1mPOST /api/upload HTTP/1.1[0m" 202 -
+2025-03-06 21:08:19,083 - backend.tasks - INFO - Starting PDF processing task for job 7faf76f7-966e-4731-84ce-32288960bdcc
+2025-03-06 21:08:19,083 - backend.core.pdf_service - INFO - Initialized PDFService with upload folder: /Users/akash009/pitch-deck-analyzer/backend/uploads
+2025-03-06 21:08:19,083 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-06 21:08:19,088 - backend.core.pdf_service - INFO - PDF has 15 pages
+2025-03-06 21:08:19,982 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:19] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:20,976 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:20] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:21,972 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:21] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:22,973 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:22] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:23,972 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:23] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:24,971 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:24] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:25,972 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:25] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:26,072 - backend.core.pdf_service - INFO - Extraction complete for job 7faf76f7-966e-4731-84ce-32288960bdcc, extracted 6116 characters
+2025-03-06 21:08:26,076 - backend.utils.text_processing - INFO - Preparing text with refinement=enabled
+2025-03-06 21:08:26,078 - backend.utils.text_processing - INFO - Sending text to LLM for refinement
+2025-03-06 21:08:26,078 - backend.utils.text_processing - INFO - Starting text refinement with stage prediction
+2025-03-06 21:08:26,079 - backend.utils.text_processing - INFO - Sending request to LLM API
+2025-03-06 21:08:26,956 - backend.utils.text_processing - ERROR - Error in text refinement with stage prediction: 'choices'
+2025-03-06 21:08:26,960 - backend.utils.text_processing - INFO - LLM refinement complete. Stage identified: default
+2025-03-06 21:08:26,962 - backend.tasks - INFO - PDF processing task completed for job 7faf76f7-966e-4731-84ce-32288960bdcc
+2025-03-06 21:08:26,967 - rq.worker - INFO - Successfully completed backend.tasks.process_pdf_task('/Users/akash009/pitch-deck-analyzer/backend/uploads/7faf76f7-966e-4731-84c..., '7faf76f7-966e-4731-84ce-32288960bdcc') job in 0:00:08.000499s on worker 21844ebf479c4ba2aa874afe8cce6236
+2025-03-06 21:08:26,969 - rq.worker - INFO - [32mpdf_jobs[39;49;00m: [34mJob OK[39;49;00m (1d00b00d-b3b3-45db-b87f-05008c725bbe)
+2025-03-06 21:08:26,970 - rq.worker - INFO - Result is kept for 500 seconds
+2025-03-06 21:08:26,972 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:26] "GET /api/status?job_id=7faf76f7-966e-4731-84ce-32288960bdcc HTTP/1.1" 200 -
+2025-03-06 21:08:34,267 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:34] "OPTIONS /api/generate-memo HTTP/1.1" 200 -
+2025-03-06 21:08:34,273 - backend.api.memo_controller - INFO - Starting memo generation for job c79fbc51-e8ec-4e40-a6be-f40496e85f27 with template 'default'
+2025-03-06 21:08:34,280 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:34] "[35m[1mPOST /api/generate-memo HTTP/1.1[0m" 202 -
+2025-03-06 21:08:34,419 - backend.tasks - INFO - Starting memo generation task for job c79fbc51-e8ec-4e40-a6be-f40496e85f27 with template 'default'
+2025-03-06 21:08:34,419 - backend.infrastructure.job_manager - INFO - Initialized JobManager with Redis at redis://localhost:6379/0
+2025-03-06 21:08:34,421 - backend.core.memo_service - INFO - Initialized MemoService
+2025-03-06 21:08:34,421 - backend.utils.text_processing - INFO - Preparing text with refinement=disabled
+2025-03-06 21:08:34,422 - backend.utils.text_processing - INFO - Skipping LLM refinement
+2025-03-06 21:08:34,422 - backend.core.memo_service - INFO - Generating memo from 2 chars of text using template 'default'
+2025-03-06 21:08:34,422 - backend.core.memo_service - INFO - Attempting to generate memo with Groq API
+2025-03-06 21:08:35,294 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:35] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:36,296 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:36] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:37,298 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:37] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:38,297 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:38] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:39,296 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:39] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:40,294 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:40] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:41,297 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:41] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:42,296 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:42] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -
+2025-03-06 21:08:42,462 - backend.core.memo_service - INFO - Successfully generated memo with Groq API (9294 chars)
+2025-03-06 21:08:42,465 - backend.tasks - INFO - Memo generation task completed for job c79fbc51-e8ec-4e40-a6be-f40496e85f27
+2025-03-06 21:08:42,470 - rq.worker - INFO - Successfully completed backend.tasks.generate_memo_task('Shane Cur ran · F ounder evervaultconfidentia lW on BTY oung Scientist & T..., 'c79fbc51-e8ec-4e40-a6be-f40496e85f27', 'default') job in 0:00:08.167457s on worker 21844ebf479c4ba2aa874afe8cce6236
+2025-03-06 21:08:42,471 - rq.worker - INFO - [32mmemo_jobs[39;49;00m: [34mJob OK[39;49;00m (6eb1c215-2886-4e87-af20-97d5c97d497b)
+2025-03-06 21:08:42,472 - rq.worker - INFO - Result is kept for 500 seconds
+2025-03-06 21:08:43,297 - werkzeug - INFO - 127.0.0.1 - - [06/Mar/2025 21:08:43] "GET /api/status?job_id=c79fbc51-e8ec-4e40-a6be-f40496e85f27 HTTP/1.1" 200 -

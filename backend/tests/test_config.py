@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 import tempfile
-from ..infrastructure.config import Config, load_config
+from ..config import Config, load_config
 
 class TestConfig(unittest.TestCase):
     

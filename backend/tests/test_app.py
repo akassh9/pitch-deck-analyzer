@@ -9,7 +9,7 @@ import os
 import tempfile
 from flask import Flask
 from ..app import create_app, register_error_handlers, register_routes, setup_logging, setup_cors
-from ..infrastructure.config import Config
+from ..config import Config
 
 class TestApp(unittest.TestCase):
     

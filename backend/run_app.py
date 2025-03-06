@@ -27,7 +27,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Import the necessary modules
-from .infrastructure.config import Config
+from .config import Config
 from .api.pdf_controller import pdf_bp
 from .api.memo_controller import memo_bp
 

@@ -5,7 +5,7 @@ Tests for the PDF service.
 import unittest
 from unittest.mock import patch, MagicMock
 from ..core.pdf_service import PDFService
-from ..infrastructure.config import Config
+from ..config import Config
 from ..utils.error_handling import ProcessingError
 from unittest.mock import call
 

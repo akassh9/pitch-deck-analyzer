@@ -7,7 +7,7 @@ import json
 import io
 from unittest.mock import patch, MagicMock
 from ..app import create_app
-from ..infrastructure.config import Config
+from ..config import Config
 
 class TestAPIControllers(unittest.TestCase):
     

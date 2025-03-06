@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from ..core.pdf_service import get_pdf_service
 from ..utils.error_handling import ApplicationError, ValidationError, handle_application_error
 from ..infrastructure.job_manager import create_job, get_job, delete_job
-from ..infrastructure.config import Config
+from ..config import Config
 from ..tasks import pdf_queue, process_pdf_task
 
 logger = logging.getLogger(__name__)

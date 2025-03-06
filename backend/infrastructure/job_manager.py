@@ -120,7 +120,7 @@ def get_job_manager(config=None):
     global _job_manager
     
     if _job_manager is None:
-        from ..infrastructure.config import Config
+        from ..config import Config
         _job_manager = JobManager(config or Config)
         
     return _job_manager

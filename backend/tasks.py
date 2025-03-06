@@ -6,7 +6,7 @@ This module defines tasks that can be executed by a task queue (e.g., Redis Queu
 import logging
 from rq import Queue
 from redis import Redis
-from .infrastructure.config import Config
+from .config import Config
 from .infrastructure.job_manager import update_job
 from .core.pdf_service import get_pdf_service
 from .core.memo_service import get_memo_service

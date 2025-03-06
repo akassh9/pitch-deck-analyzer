@@ -247,7 +247,7 @@ def refine_text_with_stage(text: str, api_key=None) -> dict:
     Returns:
         dict: Dictionary containing cleaned text and predicted startup stage
     """
-    from ..infrastructure.config import Config
+    from ..config import Config
     import requests
     import json
     import re
