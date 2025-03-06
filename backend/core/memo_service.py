@@ -6,6 +6,7 @@ This module provides functionality to generate investment memos from pitch deck 
 import logging
 import requests
 from ..utils.error_handling import ProcessingError
+from ..infrastructure.job_manager import update_job
 from ..utils.text_processing import prepare_text
 from ..prompts import build_memo_prompt  # New import for consolidated prompts
 
@@ -267,7 +268,7 @@ def generate_memo(text: str, job_id: str = None, template_key: str = None, refin
             update_job(job_id, {"status": "generating"})
             
         # Generate the memo using the template
-        memo = generate_memo_from_template(cleaned_text, template_key)
+        memo = get_memo_service().generate_memo(cleaned_text, refine=True, template_key=template_key)
         
         if job_id:
             update_job(job_id, {

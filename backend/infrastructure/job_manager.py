@@ -10,7 +10,7 @@ import json
 import uuid
 import logging
 from datetime import datetime
-from ..utils.error_handling import ResourceNotFoundError
+from ..utils.error_handling import ResourceNotFoundError  # Updated import statement
 
 logger = logging.getLogger(__name__)
 
@@ -140,4 +140,4 @@ def get_job(job_id):
 
 def delete_job(job_id):
     """Delete a job."""
-    return get_job_manager().delete_job(job_id) 
+    return get_job_manager().delete_job(job_id)

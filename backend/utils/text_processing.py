@@ -11,7 +11,6 @@ import requests
 import pytesseract
 from pdf2image import convert_from_path
 import json
-from ..prompts import build_text_refinement_prompt  # Import the consolidated prompt builder
 
 logger = logging.getLogger(__name__)
 
@@ -222,20 +221,6 @@ def ocr_page(image):
     custom_config = r'--oem 3 --psm 6'
     return pytesseract.image_to_string(image, config=custom_config)
 
-def refine_text(text, api_key=None): #no idea what this is doing, but can't remove because it breaks the code
-    # ...
-    # Use the consolidated prompt builder
-    prompt = build_text_refinement_prompt()  # This might be wrong
-    
-    data = {
-        "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",
-        "messages": [
-            {"role": "system", "content": prompt["system"]},
-            {"role": "user", "content": prompt["user"]}
-        ],
-
-    }
-
 def refine_text_with_stage(text: str, api_key=None) -> dict:
     """
     Refine text and predict startup stage using an LLM API.
@@ -273,14 +258,15 @@ def refine_text_with_stage(text: str, api_key=None) -> dict:
         "   - Fixing formatting issues\n"
         "   - Maintaining proper paragraph structure\n\n"
         "2. Analyze the content to determine the startup's stage.\n\n"
-        "First output the cleaned text, then on a new line start with 'STAGE:' "
-        "followed by one of these exact stages (case sensitive):\n"
-        "- seed (for early-stage startups seeking initial funding)\n"
-        "- seriesa (for startups with proven business model seeking growth capital)\n"
+        "First output the cleaned text with the title 'Pitch Deck Content:', then on a new line start with 'STAGE:' "
+        "followed by one of these exact stages, only provide the stage, no additional text. (case sensitive):\n"
+        "- seed (At this stage, startups are focused on proving product-market fit, developing their MVP, and early customer traction.)\n"
+        "- seriesa (At this stage, the startup has traction, revenue, and a proven business model. The focus is on scaling.)\n"
         "- growth (for established startups scaling rapidly)\n"
         "- default (if unable to determine)\n\n"
         f"{text}"
     )
+    
     
     logger.info("Sending request to LLM API")
     

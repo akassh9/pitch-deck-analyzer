@@ -4,7 +4,7 @@ import PyPDF2
 import pdfplumber
 from pdf2image import convert_from_path
 import pytesseract
-from .utils import prepare_text, is_noise_page, needs_ocr, ocr_page
+from .utils.text_processing import prepare_text, is_noise_page, needs_ocr, ocr_page
 from .job_manager import update_job
 
 def process_pdf_job(file_path, job_id):
