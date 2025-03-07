@@ -36,3 +36,4 @@ logs/
 # Ignore log files
 *.log
 app.log
+.log
