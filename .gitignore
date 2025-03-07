@@ -32,3 +32,6 @@ dist/
 # Logs directory
 logs/
 *.txt
+
+
+.log
