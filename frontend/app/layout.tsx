@@ -1,24 +1,8 @@
 // frontend/app/layout.tsx
 
 import type { Metadata } from 'next';
-import { Roboto as FontSans } from 'next/font/google';
-import { Young_Serif as FontSerif } from 'next/font/google';
 import Header from './components/Header';
 import './globals.css';
-
-const fontSans = FontSans({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const fontSerif = FontSerif({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-serif',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Nivesha',
@@ -28,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${fontSans.variable} ${fontSerif.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <Header />
         {/*
           Add a container that wraps all pages:
