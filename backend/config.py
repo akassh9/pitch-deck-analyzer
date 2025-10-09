@@ -72,7 +72,6 @@ class Config:
         
         return True
 
-# Validate configuration immediately.
-Config.validate()
-# Configure logging
-Config.configure_logging()
+# Configuration validation and logging are performed during application
+# initialisation.  Importing this module should not have side effects that might
+# fail when environment variables are not yet configured.
