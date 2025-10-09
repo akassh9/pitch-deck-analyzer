@@ -7,22 +7,10 @@ import logging
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-try:  # Prefer package imports when available
-    from backend.config import Config
-    from backend.api.pdf_controller import pdf_bp
-    from backend.api.memo_controller import memo_bp
-    from backend.utils.error_handling import ApplicationError, handle_application_error
-except ModuleNotFoundError as exc:
-    # When executed directly (e.g. ``python backend/app.py``) the parent package
-    # isn't on ``sys.path`` so absolute ``backend.*`` imports fail. In that case
-    # fall back to local imports so the module can still run as a script.
-    if exc.name != "backend":
-        raise
-
-    from config import Config
-    from api.pdf_controller import pdf_bp
-    from api.memo_controller import memo_bp
-    from utils.error_handling import ApplicationError, handle_application_error
+from backend.config import Config
+from backend.api.pdf_controller import pdf_bp
+from backend.api.memo_controller import memo_bp
+from backend.utils.error_handling import ApplicationError, handle_application_error
 
 def create_app(config=None):
     """
