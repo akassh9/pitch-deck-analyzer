@@ -27,9 +27,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Import the necessary modules
-from backend.config import Config
-from backend.api.pdf_controller import pdf_bp
-from backend.api.memo_controller import memo_bp
+from .config import Config
+from .api.pdf_controller import pdf_bp
+from .api.memo_controller import memo_bp
 
 # Register blueprints
 app.register_blueprint(pdf_bp)

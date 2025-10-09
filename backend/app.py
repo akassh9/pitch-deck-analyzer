@@ -7,10 +7,10 @@ import logging
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-from backend.config import Config
-from backend.api.pdf_controller import pdf_bp
-from backend.api.memo_controller import memo_bp
-from backend.utils.error_handling import ApplicationError, handle_application_error
+from .config import Config
+from .api.pdf_controller import pdf_bp
+from .api.memo_controller import memo_bp
+from .utils.error_handling import ApplicationError, handle_application_error
 
 def create_app(config=None):
     """
